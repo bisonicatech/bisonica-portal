@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: oklch(0.97 0.012 75);
+  color: oklch(0.17 0.014 50);
+}
