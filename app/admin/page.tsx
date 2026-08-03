@@ -22,10 +22,16 @@ export default async function AdminHubPage() {
 
       <h1 className="mt-4 font-display text-2xl font-medium text-ink">Internal hub</h1>
       <p className="mt-2 text-sm text-ink/55">
-        Cross-project tracker, user & access management, and the audit log viewer land here next — after we confirm
-        the data model and build document storage. For now, use SQL (see README) to add users and grant project
-        access.
+        Cross-project tracker and the audit log viewer land here next. User & access management is ready —
+        no more SQL needed for adding people or changing roles.
       </p>
+
+      <Link
+        href="/admin/users"
+        className="mt-6 inline-block border border-ink/10 bg-paper px-5 py-4 font-display text-sm text-ink transition hover:border-accent"
+      >
+        Users →
+      </Link>
     </main>
   );
 }
