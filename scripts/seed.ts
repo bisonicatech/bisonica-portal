@@ -9,8 +9,12 @@
 // (creates a project_access row on the sample project so you can verify that
 // role's tab visibility — "staff" should unlock all five tabs on that one
 // project, same as admin does everywhere).
-import "dotenv/config";
+import { config } from "dotenv";
 import { createClient } from "@supabase/supabase-js";
+
+// dotenv's default config() only reads a file literally named `.env` — this
+// app (like Next.js itself) uses `.env.local`, so point it there explicitly.
+config({ path: ".env.local" });
 
 const [, , email, roleArg, projectName] = process.argv;
 

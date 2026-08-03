@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getPortalUser, getProjectRoles, canUploadToArea, type DocumentArea } from "@/lib/access";
-import { DOCUMENTS_BUCKET, logAudit } from "@/lib/documents";
+import { DOCUMENTS_BUCKET, isAllowedDocumentFile, logAudit } from "@/lib/documents";
 
 const VALID_AREAS: DocumentArea[] = ["overview", "investors", "developers", "partners", "internal"];
 const MAX_FILE_BYTES = 25 * 1024 * 1024;
@@ -36,6 +36,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "File must be non-empty and under 25MB" }, { status: 400 });
   }
 
+  if (!isAllowedDocumentFile(file.name, file.type)) {
+    return NextResponse.json(
+      { error: "Unsupported file type — allowed: PDF, Word, Excel, PowerPoint, CSV, TXT, PNG, JPG" },
+      { status: 400 }
+    );
+  }
+
   const roles = await getProjectRoles(user.id, projectId);
   if (!canUploadToArea(user, roles, area as DocumentArea)) {
     return NextResponse.json({ error: "Not allowed to upload here" }, { status: 403 });
@@ -53,20 +60,32 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: uploadError.message }, { status: 500 });
   }
 
-  const { error: insertError } = await admin.from("documents").insert({
-    project_id: projectId,
-    area,
-    title,
-    file_url: path,
-    uploaded_by: user.id,
-  });
+  const { data: inserted, error: insertError } = await admin
+    .from("documents")
+    .insert({
+      project_id: projectId,
+      area,
+      title,
+      file_url: path,
+      uploaded_by: user.id,
+    })
+    .select("id")
+    .single();
 
   if (insertError) {
     await admin.storage.from(DOCUMENTS_BUCKET).remove([path]);
     return NextResponse.json({ error: insertError.message }, { status: 500 });
   }
 
-  await logAudit({ userId: user.id, projectId, action: "document_upload", target: title });
+  try {
+    await logAudit({ userId: user.id, projectId, action: "document_upload", target: title });
+  } catch (auditError) {
+    // Fail closed: don't leave an unlogged document behind. Roll back both
+    // the storage object and the row, then report the failure.
+    await admin.storage.from(DOCUMENTS_BUCKET).remove([path]);
+    await admin.from("documents").delete().eq("id", inserted.id);
+    return NextResponse.json({ error: "Could not record this upload — please try again" }, { status: 500 });
+  }
 
   return NextResponse.json({ ok: true });
 }

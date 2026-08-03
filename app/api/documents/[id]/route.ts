@@ -40,7 +40,13 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json({ error: signError?.message ?? "Could not generate download link" }, { status: 500 });
   }
 
-  await logAudit({ userId: user.id, projectId: doc.project_id, action: "document_view", target: doc.title });
+  // Fail closed: only hand back the signed URL if the view was actually
+  // recorded — an unlogged download defeats the point of the audit trail.
+  try {
+    await logAudit({ userId: user.id, projectId: doc.project_id, action: "document_view", target: doc.title });
+  } catch {
+    return NextResponse.json({ error: "Could not record this download — please try again" }, { status: 500 });
+  }
 
   return NextResponse.redirect(signed.signedUrl);
 }
