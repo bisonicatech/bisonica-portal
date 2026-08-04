@@ -2,7 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getPortalUser, getProjectRoles, hasAreaAccess, type DocumentArea } from "@/lib/access";
-import { DOCUMENTS_BUCKET, logAudit } from "@/lib/documents";
+import { DOCUMENTS_BUCKET } from "@/lib/documents";
+import { logAudit } from "@/lib/audit";
 
 // Every hit here is a real view/download — the link on the page always points
 // through this route (never a direct storage URL), so the auth check + audit

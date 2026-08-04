@@ -2,7 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getPortalUser, getProjectRoles, canUploadToArea, type DocumentArea } from "@/lib/access";
-import { DOCUMENTS_BUCKET, isAllowedDocumentFile, logAudit } from "@/lib/documents";
+import { DOCUMENTS_BUCKET, isAllowedDocumentFile } from "@/lib/documents";
+import { logAudit } from "@/lib/audit";
 
 const VALID_AREAS: DocumentArea[] = ["overview", "investors", "developers", "partners", "internal"];
 const MAX_FILE_BYTES = 25 * 1024 * 1024;

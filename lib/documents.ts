@@ -58,23 +58,3 @@ export async function listDocuments(projectId: string, area: DocumentArea): Prom
     createdAt: d.created_at,
   }));
 }
-
-// Appends one row to the audit trail. Throws on failure — deliberately
-// fail-closed, since "every view/download is logged" is a stated guarantee
-// for documents that can include cap tables and signed agreements. Callers
-// must not hand back a file (or leave one uploaded) if this throws.
-export async function logAudit(params: {
-  userId: string;
-  projectId: string;
-  action: "document_upload" | "document_view";
-  target: string;
-}) {
-  const admin = createAdminClient();
-  const { error } = await admin.from("audit_log").insert({
-    user_id: params.userId,
-    project_id: params.projectId,
-    action: params.action,
-    target: params.target,
-  });
-  if (error) throw error;
-}

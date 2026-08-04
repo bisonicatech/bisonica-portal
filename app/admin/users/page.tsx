@@ -4,7 +4,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { getPortalUser } from "@/lib/access";
 import { getAllUsersWithAccess, getAllProjectsForAdmin } from "@/lib/admin";
 import { inviteUser, grantAccess, revokeAccess, toggleAdmin, removeUser } from "./actions";
-import { ConfirmButton } from "./ConfirmButton";
+import { ConfirmButton } from "../ConfirmButton";
 
 const ROLES = ["investor", "developer", "partner", "internal", "staff"] as const;
 

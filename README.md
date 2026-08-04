@@ -77,11 +77,28 @@ the requester's access, writes an `audit_log` row (`document_view`), and only
 then redirects to a short-lived (60s) signed URL — so the file is never
 reachable by a bare storage link, and every open is logged.
 
+## Admin hub
+
+`/admin` (admin-only) is a master tracker — every project with its status,
+people-with-access count, and document count — with links to:
+
+- `/admin/users` — invite people, grant/revoke project roles (with optional
+  expiry), toggle admin status. No SQL needed for any of this anymore.
+- `/admin/projects` — create, edit, or delete project spaces.
+- `/admin/audit` — browse the last 200 audit_log entries (document views/
+  uploads, and every access change made through the pages above).
+
+All of the mutating actions here are Next.js Server Actions, re-check admin
+status server-side independent of the page gate, and are fail-closed the
+same way document upload/download are — if the audit log write fails, the
+action is rolled back rather than left unlogged.
+
 ## Not built yet (needs your sign-off first)
 
-- The real `/admin` hub (user/role management UI, cross-project tracker,
-  audit log viewer) — right now it's a gated placeholder page
+- Deleting/editing a document once uploaded, or editing Overview tab content
+  (timeline/key contacts) — both still require direct Supabase access
 - Visual watermarking on downloads (we went with audit-log-only per your
   call — flag if you want watermarking added later)
+- 2FA for admin accounts (called for in the original brief, not built)
 - Access expiry enforcement is implemented in the query logic but untested
   against a real expired row
