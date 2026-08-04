@@ -5,6 +5,7 @@ import { getPortalUser } from "@/lib/access";
 import { getAllProjectsWithStats } from "@/lib/admin";
 import { createProject, updateProject, deleteProject } from "./actions";
 import { ConfirmButton } from "../ConfirmButton";
+import { ActionForm } from "../ActionForm";
 
 export default async function AdminProjectsPage() {
   const supabase = createServerSupabase();
@@ -29,7 +30,7 @@ export default async function AdminProjectsPage() {
 
       <section className="mt-8 border border-ink/10 bg-paper p-5">
         <h2 className="font-display text-sm uppercase tracking-wider text-ink/50">Create a new project</h2>
-        <form action={createProject} className="mt-4 flex flex-wrap items-end gap-3">
+        <ActionForm action={createProject} className="mt-4 flex flex-wrap items-end gap-3">
           <div>
             <label className="block font-display text-[10px] uppercase tracking-wider text-ink/50">Name</label>
             <input
@@ -78,7 +79,7 @@ export default async function AdminProjectsPage() {
           >
             Create
           </button>
-        </form>
+        </ActionForm>
       </section>
 
       <section className="mt-6 space-y-4">
@@ -97,7 +98,7 @@ export default async function AdminProjectsPage() {
                 >
                   View project →
                 </Link>
-                <form action={deleteProject}>
+                <ActionForm action={deleteProject}>
                   <input type="hidden" name="projectId" value={p.id} />
                   <ConfirmButton
                     confirmMessage={`Delete "${p.name}"? This also deletes every document and access grant on it — cannot be undone.`}
@@ -105,11 +106,11 @@ export default async function AdminProjectsPage() {
                   >
                     Delete
                   </ConfirmButton>
-                </form>
+                </ActionForm>
               </div>
             </div>
 
-            <form action={updateProject} className="mt-4 flex flex-wrap items-end gap-3">
+            <ActionForm action={updateProject} className="mt-4 flex flex-wrap items-end gap-3">
               <input type="hidden" name="projectId" value={p.id} />
               <div>
                 <label className="block font-display text-[10px] uppercase tracking-wider text-ink/50">Name</label>
@@ -159,7 +160,7 @@ export default async function AdminProjectsPage() {
               >
                 Save
               </button>
-            </form>
+            </ActionForm>
           </div>
         ))}
 

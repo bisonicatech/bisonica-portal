@@ -6,6 +6,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getPortalUser, type ProjectRole, type PortalUser } from "@/lib/access";
 import { logAudit } from "@/lib/audit";
+import type { ActionState } from "../ActionForm";
 
 // Every action below re-checks admin status itself — this page is gated by
 // the layout/page too, but a Server Action is a public endpoint in its own
@@ -23,7 +24,7 @@ async function requireAdmin(): Promise<PortalUser> {
   return user;
 }
 
-export async function inviteUser(formData: FormData) {
+export async function inviteUser(_prevState: ActionState, formData: FormData): Promise<ActionState> {
   const actor = await requireAdmin();
 
   const email = String(formData.get("email") ?? "")
@@ -32,7 +33,7 @@ export async function inviteUser(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim() || null;
   const isAdmin = formData.get("isAdmin") === "on";
 
-  if (!email) return;
+  if (!email) return { error: "Email is required." };
 
   const admin = createAdminClient();
 
@@ -48,14 +49,14 @@ export async function inviteUser(formData: FormData) {
 
   if (createError) {
     if (!createError.message.toLowerCase().includes("already been registered")) {
-      throw createError;
+      return { error: createError.message };
     }
     const { data: list, error: listError } = await admin.auth.admin.listUsers();
-    if (listError) throw listError;
+    if (listError) return { error: listError.message };
     authUserId = list.users.find((u) => u.email === email)?.id;
   }
 
-  if (!authUserId) throw new Error("Could not resolve auth user id");
+  if (!authUserId) return { error: "Could not resolve auth user id." };
 
   // Track whether the allow-list row already existed, so a rollback only
   // removes what this call actually added.
@@ -65,7 +66,7 @@ export async function inviteUser(formData: FormData) {
     .from("users")
     .upsert({ id: authUserId, email, name, is_admin: isAdmin }, { onConflict: "id" });
 
-  if (upsertError) throw upsertError;
+  if (upsertError) return { error: upsertError.message };
 
   try {
     await logAudit({ userId: actor.id, projectId: null, action: "user_invited", target: email });
@@ -73,13 +74,14 @@ export async function inviteUser(formData: FormData) {
     if (!existingRow) {
       await admin.from("users").delete().eq("id", authUserId);
     }
-    throw new Error("Could not record this invite — please try again");
+    return { error: "Could not record this invite — please try again." };
   }
 
   revalidatePath("/admin/users");
+  return {};
 }
 
-export async function grantAccess(formData: FormData) {
+export async function grantAccess(_prevState: ActionState, formData: FormData): Promise<ActionState> {
   const actor = await requireAdmin();
 
   const userId = String(formData.get("userId") ?? "");
@@ -87,7 +89,7 @@ export async function grantAccess(formData: FormData) {
   const role = String(formData.get("role") ?? "") as ProjectRole;
   const expiresAtRaw = String(formData.get("expiresAt") ?? "").trim();
 
-  if (!userId || !projectId || !role) return;
+  if (!userId || !projectId || !role) return { error: "Missing project or role." };
 
   const admin = createAdminClient();
 
@@ -114,7 +116,7 @@ export async function grantAccess(formData: FormData) {
       { onConflict: "user_id,project_id,role" }
     );
 
-  if (error) throw error;
+  if (error) return { error: error.message };
 
   try {
     await logAudit({
@@ -136,17 +138,18 @@ export async function grantAccess(formData: FormData) {
     } else {
       await admin.from("project_access").delete().eq("user_id", userId).eq("project_id", projectId).eq("role", role);
     }
-    throw new Error("Could not record this access change — please try again");
+    return { error: "Could not record this access change — please try again." };
   }
 
   revalidatePath("/admin/users");
+  return {};
 }
 
-export async function revokeAccess(formData: FormData) {
+export async function revokeAccess(_prevState: ActionState, formData: FormData): Promise<ActionState> {
   const actor = await requireAdmin();
 
   const accessId = String(formData.get("accessId") ?? "");
-  if (!accessId) return;
+  if (!accessId) return { error: "Missing access grant." };
 
   const admin = createAdminClient();
 
@@ -156,10 +159,10 @@ export async function revokeAccess(formData: FormData) {
     .eq("id", accessId)
     .maybeSingle();
 
-  if (!row) return;
+  if (!row) return {};
 
   const { error } = await admin.from("project_access").delete().eq("id", accessId);
-  if (error) throw error;
+  if (error) return { error: error.message };
 
   try {
     await logAudit({
@@ -178,26 +181,27 @@ export async function revokeAccess(formData: FormData) {
       role: row.role,
       expires_at: row.expires_at,
     });
-    throw new Error("Could not record this access change — please try again");
+    return { error: "Could not record this access change — please try again." };
   }
 
   revalidatePath("/admin/users");
+  return {};
 }
 
-export async function toggleAdmin(formData: FormData) {
+export async function toggleAdmin(_prevState: ActionState, formData: FormData): Promise<ActionState> {
   const actor = await requireAdmin();
 
   const userId = String(formData.get("userId") ?? "");
   const nextValue = formData.get("nextValue") === "true";
-  if (!userId) return;
+  if (!userId) return { error: "Missing user." };
 
   const admin = createAdminClient();
 
   const { data: targetUser } = await admin.from("users").select("email, is_admin").eq("id", userId).maybeSingle();
-  if (!targetUser) return;
+  if (!targetUser) return {};
 
   const { error } = await admin.from("users").update({ is_admin: nextValue }).eq("id", userId);
-  if (error) throw error;
+  if (error) return { error: error.message };
 
   try {
     await logAudit({
@@ -208,32 +212,33 @@ export async function toggleAdmin(formData: FormData) {
     });
   } catch {
     await admin.from("users").update({ is_admin: targetUser.is_admin }).eq("id", userId);
-    throw new Error("Could not record this change — please try again");
+    return { error: "Could not record this change — please try again." };
   }
 
   revalidatePath("/admin/users");
+  return {};
 }
 
-export async function removeUser(formData: FormData) {
+export async function removeUser(_prevState: ActionState, formData: FormData): Promise<ActionState> {
   const actor = await requireAdmin();
 
   const userId = String(formData.get("userId") ?? "");
-  if (!userId) return;
+  if (!userId) return { error: "Missing user." };
 
   // Cheap guard against an admin locking themselves out by mis-clicking.
   if (userId === actor.id) {
-    throw new Error("You can't remove your own account.");
+    return { error: "You can't remove your own account." };
   }
 
   const admin = createAdminClient();
 
   const { data: targetUser } = await admin.from("users").select("*").eq("id", userId).maybeSingle();
-  if (!targetUser) return;
+  if (!targetUser) return {};
 
   const { data: accessRows } = await admin.from("project_access").select("*").eq("user_id", userId);
 
   const { error } = await admin.from("users").delete().eq("id", userId);
-  if (error) throw error;
+  if (error) return { error: error.message };
 
   try {
     await logAudit({ userId: actor.id, projectId: null, action: "user_removed", target: targetUser.email });
@@ -244,8 +249,9 @@ export async function removeUser(formData: FormData) {
     if (accessRows && accessRows.length > 0) {
       await admin.from("project_access").insert(accessRows);
     }
-    throw new Error("Could not record this removal — please try again");
+    return { error: "Could not record this removal — please try again." };
   }
 
   revalidatePath("/admin/users");
+  return {};
 }

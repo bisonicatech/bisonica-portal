@@ -6,6 +6,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getPortalUser, type PortalUser } from "@/lib/access";
 import { logAudit } from "@/lib/audit";
+import type { ActionState } from "../ActionForm";
 
 async function requireAdmin(): Promise<PortalUser> {
   const supabase = createServerSupabase();
@@ -21,7 +22,13 @@ async function requireAdmin(): Promise<PortalUser> {
 
 const VALID_STATUSES = ["active", "paused", "archived"];
 
-export async function createProject(formData: FormData) {
+// Postgres unique_violation. The only unique constraint on `projects` is
+// `slug`, so this code always means a slug collision here.
+function isUniqueViolation(error: unknown): boolean {
+  return typeof error === "object" && error !== null && (error as { code?: string }).code === "23505";
+}
+
+export async function createProject(_prevState: ActionState, formData: FormData): Promise<ActionState> {
   const actor = await requireAdmin();
 
   const name = String(formData.get("name") ?? "").trim();
@@ -31,8 +38,8 @@ export async function createProject(formData: FormData) {
   const status = String(formData.get("status") ?? "active");
   const summary = String(formData.get("summary") ?? "").trim() || null;
 
-  if (!name || !slug) return;
-  if (!VALID_STATUSES.includes(status)) return;
+  if (!name || !slug) return { error: "Name and slug are required." };
+  if (!VALID_STATUSES.includes(status)) return { error: "Invalid status." };
 
   const admin = createAdminClient();
 
@@ -42,20 +49,23 @@ export async function createProject(formData: FormData) {
     .select("id")
     .single();
 
-  if (error) throw error;
+  if (error) {
+    return { error: isUniqueViolation(error) ? `A project with slug "${slug}" already exists.` : error.message };
+  }
 
   try {
     await logAudit({ userId: actor.id, projectId: inserted.id, action: "project_created", target: name });
   } catch {
     await admin.from("projects").delete().eq("id", inserted.id);
-    throw new Error("Could not record this change — please try again");
+    return { error: "Could not record this change — please try again." };
   }
 
   revalidatePath("/admin/projects");
   revalidatePath("/dashboard");
+  return {};
 }
 
-export async function updateProject(formData: FormData) {
+export async function updateProject(_prevState: ActionState, formData: FormData): Promise<ActionState> {
   const actor = await requireAdmin();
 
   const projectId = String(formData.get("projectId") ?? "");
@@ -66,8 +76,8 @@ export async function updateProject(formData: FormData) {
   const status = String(formData.get("status") ?? "active");
   const summary = String(formData.get("summary") ?? "").trim() || null;
 
-  if (!projectId || !name || !slug) return;
-  if (!VALID_STATUSES.includes(status)) return;
+  if (!projectId || !name || !slug) return { error: "Name and slug are required." };
+  if (!VALID_STATUSES.includes(status)) return { error: "Invalid status." };
 
   const admin = createAdminClient();
 
@@ -76,28 +86,31 @@ export async function updateProject(formData: FormData) {
     .select("name, slug, status, summary")
     .eq("id", projectId)
     .maybeSingle();
-  if (!previous) return;
+  if (!previous) return { error: "Project not found." };
 
   const { error } = await admin.from("projects").update({ name, slug, status, summary }).eq("id", projectId);
-  if (error) throw error;
+  if (error) {
+    return { error: isUniqueViolation(error) ? `A project with slug "${slug}" already exists.` : error.message };
+  }
 
   try {
     await logAudit({ userId: actor.id, projectId, action: "project_updated", target: name });
   } catch {
     await admin.from("projects").update(previous).eq("id", projectId);
-    throw new Error("Could not record this change — please try again");
+    return { error: "Could not record this change — please try again." };
   }
 
   revalidatePath("/admin/projects");
   revalidatePath("/dashboard");
   revalidatePath(`/projects/${slug}`);
+  return {};
 }
 
-export async function deleteProject(formData: FormData) {
+export async function deleteProject(_prevState: ActionState, formData: FormData): Promise<ActionState> {
   const actor = await requireAdmin();
 
   const projectId = String(formData.get("projectId") ?? "");
-  if (!projectId) return;
+  if (!projectId) return { error: "Missing project." };
 
   const admin = createAdminClient();
 
@@ -105,7 +118,7 @@ export async function deleteProject(formData: FormData) {
   // (schema-level ON DELETE CASCADE) — snapshot everything first so a
   // failed audit write can restore the whole thing, not just the project row.
   const { data: project } = await admin.from("projects").select("*").eq("id", projectId).maybeSingle();
-  if (!project) return;
+  if (!project) return { error: "Project not found." };
 
   const [{ data: accessRows }, { data: documentRows }] = await Promise.all([
     admin.from("project_access").select("*").eq("project_id", projectId),
@@ -113,7 +126,7 @@ export async function deleteProject(formData: FormData) {
   ]);
 
   const { error } = await admin.from("projects").delete().eq("id", projectId);
-  if (error) throw error;
+  if (error) return { error: error.message };
 
   try {
     await logAudit({ userId: actor.id, projectId: null, action: "project_deleted", target: project.name });
@@ -121,9 +134,10 @@ export async function deleteProject(formData: FormData) {
     await admin.from("projects").insert(project);
     if (accessRows && accessRows.length > 0) await admin.from("project_access").insert(accessRows);
     if (documentRows && documentRows.length > 0) await admin.from("documents").insert(documentRows);
-    throw new Error("Could not record this deletion — please try again");
+    return { error: "Could not record this deletion — please try again." };
   }
 
   revalidatePath("/admin/projects");
   revalidatePath("/dashboard");
+  return {};
 }

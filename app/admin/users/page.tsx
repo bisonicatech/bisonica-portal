@@ -5,6 +5,7 @@ import { getPortalUser } from "@/lib/access";
 import { getAllUsersWithAccess, getAllProjectsForAdmin } from "@/lib/admin";
 import { inviteUser, grantAccess, revokeAccess, toggleAdmin, removeUser } from "./actions";
 import { ConfirmButton } from "../ConfirmButton";
+import { ActionForm } from "../ActionForm";
 
 const ROLES = ["investor", "developer", "partner", "internal", "staff"] as const;
 
@@ -31,7 +32,7 @@ export default async function AdminUsersPage() {
 
       <section className="mt-8 border border-ink/10 bg-paper p-5">
         <h2 className="font-display text-sm uppercase tracking-wider text-ink/50">Invite a new user</h2>
-        <form action={inviteUser} className="mt-4 flex flex-wrap items-end gap-3">
+        <ActionForm action={inviteUser} className="mt-4 flex flex-wrap items-end gap-3">
           <div>
             <label className="block font-display text-[10px] uppercase tracking-wider text-ink/50">Email</label>
             <input
@@ -61,7 +62,7 @@ export default async function AdminUsersPage() {
           >
             Invite
           </button>
-        </form>
+        </ActionForm>
         <p className="mt-2 text-xs text-ink/40">
           Creates their login and adds them to the allow-list. Tell them to sign in at portal.bisonica.tech once
           added.
@@ -82,7 +83,7 @@ export default async function AdminUsersPage() {
                 </p>
               </div>
               <div className="flex items-center gap-4">
-                <form action={toggleAdmin}>
+                <ActionForm action={toggleAdmin}>
                   <input type="hidden" name="userId" value={u.id} />
                   <input type="hidden" name="nextValue" value={(!u.isAdmin).toString()} />
                   <button
@@ -91,9 +92,9 @@ export default async function AdminUsersPage() {
                   >
                     {u.isAdmin ? "Remove admin" : "Make admin"}
                   </button>
-                </form>
+                </ActionForm>
                 {u.id !== currentUser.id && (
-                  <form action={removeUser}>
+                  <ActionForm action={removeUser}>
                     <input type="hidden" name="userId" value={u.id} />
                     <ConfirmButton
                       confirmMessage={`Remove ${u.email} from the portal? This deletes all their project access.`}
@@ -101,7 +102,7 @@ export default async function AdminUsersPage() {
                     >
                       Remove
                     </ConfirmButton>
-                  </form>
+                  </ActionForm>
                 )}
               </div>
             </div>
@@ -117,18 +118,18 @@ export default async function AdminUsersPage() {
                         <span className="text-ink/40"> · expires {new Date(a.expiresAt).toLocaleDateString()}</span>
                       )}
                     </span>
-                    <form action={revokeAccess}>
+                    <ActionForm action={revokeAccess}>
                       <input type="hidden" name="accessId" value={a.id} />
                       <ConfirmButton confirmMessage="Revoke this access?" className="text-xs text-ink/40 hover:text-red-500">
                         Revoke
                       </ConfirmButton>
-                    </form>
+                    </ActionForm>
                   </li>
                 ))}
               </ul>
             )}
 
-            <form action={grantAccess} className="mt-4 flex flex-wrap items-end gap-3 border-t border-ink/10 pt-3">
+            <ActionForm action={grantAccess} className="mt-4 flex flex-wrap items-end gap-3 border-t border-ink/10 pt-3">
               <input type="hidden" name="userId" value={u.id} />
               <div>
                 <label className="block font-display text-[10px] uppercase tracking-wider text-ink/50">
@@ -176,7 +177,7 @@ export default async function AdminUsersPage() {
               >
                 Grant
               </button>
-            </form>
+            </ActionForm>
           </div>
         ))}
 
