@@ -18,6 +18,8 @@ export type Settings = {
   role?: Role;
   /** First-run setup finished on the cared-for person's phone. */
   setupDone?: boolean;
+  /** Family member's phone: receive check-in alerts here. False for extra family members who joined with a code. */
+  getsAlerts?: boolean;
   /** The person being cared for. */
   name: string;
   /** The family member who looks after them. */

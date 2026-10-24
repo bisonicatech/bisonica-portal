@@ -11,6 +11,7 @@ import {
   formatTime,
   getHousehold,
   newLinkCode,
+  redeemLinkCode,
   registerForPush,
   setSchedule,
   startOut,
@@ -75,14 +76,15 @@ export default function FamilyScreen({ settings, onSave, onChangeRole }: Props) 
   useEffect(() => {
     if (!code) return;
     refresh();
-    registerForPush(code, 'carer').catch(() => {});
+    // Alerts go to one family phone; extra family members who joined with a code don't take them over.
+    if (settings.getsAlerts !== false) registerForPush(code, 'carer').catch(() => {});
     const t = setInterval(refresh, 20_000);
     const sub = AppState.addEventListener('change', (s) => s === 'active' && refresh());
     return () => {
       clearInterval(t);
       sub.remove();
     };
-  }, [code, refresh]);
+  }, [code, refresh, settings.getsAlerts]);
 
   const run = async (fn: () => Promise<Household>) => {
     setBusy(true);
@@ -261,7 +263,7 @@ function LinkCard({ code, patient, startOpen }: { code: string; patient: string;
   if (!open) {
     return (
       <Pressable onPress={() => setOpen(true)} style={{ marginTop: 32 }}>
-        <Text style={[form.hint, { color: '#1f3b73', fontWeight: '600' }]}>Link {patient}'s phone again…</Text>
+        <Text style={[form.hint, { color: '#1f3b73', fontWeight: '600' }]}>Show a link code (for {patient}'s phone or another family member)…</Text>
       </Pressable>
     );
   }
@@ -271,11 +273,12 @@ function LinkCard({ code, patient, startOpen }: { code: string; patient: string;
 
   return (
     <View style={[form.card, { marginTop: 16 }]}>
-      <Text style={styles.linkTitle}>Link {patient}'s phone</Text>
+      <Text style={styles.linkTitle}>Link code</Text>
       <Text style={form.hint}>
-        1. On {patient}'s phone, hold the clock time for 3 seconds.{'\n'}
-        2. Enter the 4-digit settings PIN (1234 unless it's been changed).{'\n'}
-        3. Type this link code at the top and tap Save.
+        For {patient}'s phone: hold the clock time for 3 seconds, enter the 4-digit settings PIN, type this code at the top and tap
+        Save.{'\n'}
+        For another family member: in DayGuide on their phone, choose "A family member or carer", then "I have a code", and type
+        this code.
       </Text>
       <Text style={[styles.code, expired && { color: '#aaa', textDecorationLine: 'line-through' }]} selectable>
         {shown}
@@ -392,8 +395,17 @@ function Setup({ settings, onSave, onChangeRole }: Props) {
     if (mode === 'new' && !carer.trim()) return setError('Please type your name.');
     setBusy(true);
     try {
-      const h = mode === 'new' ? await createHousehold(patient, carer, phone) : await getHousehold(code);
-      onSave({ ...settings, householdCode: h.code, name: h.patient_name, carerName: h.carer_name, carerPhone: h.carer_phone });
+      const h =
+        mode === 'new' ? await createHousehold(patient, carer, phone) : /^\d{6}$/.test(code) ? await redeemLinkCode(code) : await getHousehold(code);
+      // The phone that sets things up gets the alerts; family members who join with a code don't.
+      onSave({
+        ...settings,
+        householdCode: h.code,
+        name: h.patient_name,
+        carerName: h.carer_name,
+        carerPhone: h.carer_phone,
+        getsAlerts: mode === 'new',
+      });
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -424,18 +436,23 @@ function Setup({ settings, onSave, onChangeRole }: Props) {
         </>
       ) : (
         <>
-          <Text style={form.label}>Family code</Text>
+          <Text style={form.label}>6-digit link code from the main family member's DayGuide</Text>
           <TextInput
             style={form.input}
             value={code}
             onChangeText={(t) => setCode(t.replace(/[^0-9a-z]/gi, '').toUpperCase())}
+            keyboardType="number-pad"
             autoCapitalize="characters"
             autoCorrect={false}
             spellCheck={false}
             maxLength={10}
-            placeholder="e.g. 4A5891DA82"
+            placeholder="123 456"
             {...doneProps}
           />
+          <Text style={form.hint}>
+            On their phone, the code is under "Show a link code" at the bottom of the screen. You'll see the same information as
+            them, but check-in alerts stay on their phone.
+          </Text>
         </>
       )}
 
