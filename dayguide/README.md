@@ -55,6 +55,16 @@ settings to link the two phones. It is separate from the settings PIN.
 ![David's phone: normal, Out mode, check-in](docs/family-david.png)
 ![Carrie's phone: going out, Out mode on, missed check-in](docs/family-carrie.png)
 
+## Privacy and deleting data
+
+- The privacy policy is [`legal/privacy.html`](legal/privacy.html): fill in the
+  highlighted placeholders, host it (e.g. at clocka.co.uk/privacy), and put its
+  address in `eas.json` as `EXPO_PUBLIC_PRIVACY_URL` and in App Store Connect.
+- In the app, "Privacy and your data" shows a plain-English summary. The family
+  member who set Clocka up can delete the whole household; other phones can
+  remove Clocka from themselves. Linked phones notice a deleted household and
+  unlink, keeping their own schedule.
+
 ## Plans
 
 | | Free | Premium (£2.99/month or £24.99/year, 1-month free trial) |
@@ -102,7 +112,9 @@ on its own; the family features are just hidden.
    (6-digit link codes) and
    [`0004_shared_schedule.sql`](supabase/migrations/0004_shared_schedule.sql)
    (schedule editing from the family member's phone) and
-   [`0005_premium.sql`](supabase/migrations/0005_premium.sql) (free and Premium plans).
+   [`0005_premium.sql`](supabase/migrations/0005_premium.sql) (free and Premium plans) and
+   [`0006_delete_data.sql`](supabase/migrations/0006_delete_data.sql) (deleting a
+   household from the app, and automatic deletion after 12 months unused).
 3. Put the project URL and the anon or publishable key (from **Project
    Settings → API Keys**) in `eas.json` for app builds, and in `.env` (copy
    `.env.example`) for running locally. Both are public values that ship

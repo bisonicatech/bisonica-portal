@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Settings, scheduleError, sortEntries } from './schedule';
 import ScheduleEditor from './ScheduleEditor';
+import { DataCard, PrivacyScreen } from './PrivacyData';
 import { Household, familyEnabled, getHousehold, hasPremium, redeemLinkCode } from './family';
 import { Button, Screen, doneProps, form } from './ui';
 
@@ -12,15 +13,20 @@ type Props = {
   onSave: (s: Settings) => void;
   onClose: () => void;
   onChangeRole: () => void;
+  /** Remove everything Clocka has saved on this phone. */
+  onReset: () => void;
 };
 
-export default function SettingsScreen({ settings, household, onSave, onClose, onChangeRole }: Props) {
+export default function SettingsScreen({ settings, household, onSave, onClose, onChangeRole, onReset }: Props) {
   const [unlocked, setUnlocked] = useState(false);
   const [pinTry, setPinTry] = useState('');
   const [draft, setDraft] = useState<Settings>(settings);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [linkInput, setLinkInput] = useState('');
+  const [showPrivacy, setShowPrivacy] = useState(false);
+
+  if (showPrivacy) return <PrivacyScreen onClose={() => setShowPrivacy(false)} />;
 
   if (!unlocked) {
     // A PIN saved by an older version may be longer than 4 digits.
@@ -161,6 +167,13 @@ export default function SettingsScreen({ settings, household, onSave, onClose, o
       />
       {!!error && <Text style={styles.error}>{error}</Text>}
       <View style={{ marginTop: 12 }}>{saveRow}</View>
+      <DataCard
+        patient={draft.name || 'this person'}
+        canDeleteAll={false}
+        onDeleteAll={async () => {}}
+        onRemoveHere={onReset}
+        onPrivacy={() => setShowPrivacy(true)}
+      />
       <Pressable onPress={onChangeRole} style={{ marginTop: 32 }}>
         <Text style={styles.hint}>Change what this phone is for…</Text>
       </Pressable>

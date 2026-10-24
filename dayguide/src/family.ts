@@ -141,6 +141,9 @@ export const sendMessage = (code: string, message: string, minutes: number) =>
 export const setContacts = (code: string, contacts: Contact[], video: VideoContact | null) =>
   rpc<Household>('dg_set_contacts', { p_code: code, p_contacts: contacts, p_video_contact: video });
 
+/** Delete everything about this household from the server (the family member who set it up). */
+export const deleteHousehold = (code: string) => rpc<null>('dg_delete_household', { p_code: code });
+
 export const updateHousehold = (code: string, patientName: string, carerName: string, carerPhone: string) =>
   rpc<Household>('dg_update_household', { p_code: code, p_patient_name: patientName, p_carer_name: carerName, p_carer_phone: carerPhone });
 

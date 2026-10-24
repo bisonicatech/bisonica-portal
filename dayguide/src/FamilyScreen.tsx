@@ -5,10 +5,12 @@ import ScheduleEditor from './ScheduleEditor';
 import Paywall from './Paywall';
 import { ContactsCard, MessageCard, PlanCard } from './PremiumCards';
 import { currentPremiumUntil, purchasesEnabled, setupPurchases } from './purchases';
+import { DataCard, PrivacyScreen } from './PrivacyData';
 import {
   FamilyError,
   Household,
   createHousehold,
+  deleteHousehold,
   endOut,
   familyEnabled,
   formatTime,
@@ -27,6 +29,8 @@ type Props = {
   settings: Settings;
   onSave: (s: Settings) => void;
   onChangeRole: () => void;
+  /** Remove everything Clocka has saved on this phone. */
+  onReset: () => void;
 };
 
 const EVERY = [
@@ -61,13 +65,14 @@ const outMessage = (carer: string, back: Date | null) =>
   `${carer || 'Your family'} has gone out${back ? ` and will be back at ${formatTime(back)}` : ''}. ` +
   'Have a cup of tea and watch the TV. Please don\'t use the cooker.';
 
-export default function FamilyScreen({ settings, onSave, onChangeRole }: Props) {
+export default function FamilyScreen({ settings, onSave, onChangeRole, onReset }: Props) {
   const code = settings.householdCode;
   const [household, setHousehold] = useState<Household | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
 
   // If this household has a subscription in the App Store (e.g. bought on another
   // family member's phone, or renewed), make sure the server knows.
@@ -85,9 +90,11 @@ export default function FamilyScreen({ settings, onSave, onChangeRole }: Props) 
       setHousehold(await getHousehold(code));
       setError('');
     } catch (e) {
+      // The household was deleted (e.g. from another family phone): start again.
+      if (e instanceof FamilyError && e.kind === 'not_found') return onReset();
       setError((e as Error).message);
     }
-  }, [code]);
+  }, [code, onReset]);
 
   useEffect(() => {
     if (!code) return;
@@ -137,6 +144,8 @@ export default function FamilyScreen({ settings, onSave, onChangeRole }: Props) 
     setEditingSchedule(false);
     setShowPaywall(true);
   };
+
+  if (showPrivacy) return <PrivacyScreen onClose={() => setShowPrivacy(false)} />;
 
   if (showPaywall) {
     return (
@@ -211,6 +220,16 @@ export default function FamilyScreen({ settings, onSave, onChangeRole }: Props) 
       {!!error && !!household && <Text style={form.error}>{error}</Text>}
 
       {household && !!household.patient_seen_at && <LinkCard code={code} patient={patient} />}
+      <DataCard
+        patient={patient}
+        canDeleteAll={settings.getsAlerts !== false}
+        onDeleteAll={async () => {
+          await deleteHousehold(code);
+          onReset();
+        }}
+        onRemoveHere={onReset}
+        onPrivacy={() => setShowPrivacy(true)}
+      />
       <Pressable onPress={onChangeRole} style={{ marginTop: 24 }}>
         <Text style={form.hint}>Change what this phone is for…</Text>
       </Pressable>
@@ -469,7 +488,7 @@ function GoOut({
   );
 }
 
-function Setup({ settings, onSave, onChangeRole }: Props) {
+function Setup({ settings, onSave, onChangeRole }: Omit<Props, 'onReset'>) {
   const [mode, setMode] = useState<'new' | 'join'>('new');
   const [patient, setPatient] = useState(settings.name);
   const [carer, setCarer] = useState(settings.carerName);

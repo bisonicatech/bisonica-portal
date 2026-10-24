@@ -10,6 +10,7 @@ import FamilyScreen from './src/FamilyScreen';
 import WelcomeScreen from './src/WelcomeScreen';
 import PatientSetup from './src/PatientSetup';
 import { DEFAULT_SETTINGS, Role, Settings, currentEntry } from './src/schedule';
+import { FamilyError } from './src/family';
 import { loadSettings, saveSettings } from './src/storage';
 import { clearReminders, syncReminders } from './src/reminders';
 import { Household, checkIn, familyEnabled, getHouseholdAsPatient, registerForPush, setSchedule } from './src/family';
@@ -78,8 +79,13 @@ export default function App() {
         // The family member changed the schedule: use theirs.
         await persist({ ...s, entries: h.schedule, scheduleUpdatedAt: h.schedule_updated_at });
       }
-    } catch {
-      // Keep showing the last known state if the connection drops; try again next time.
+    } catch (e) {
+      // The family deleted their Clocka data: unlink, but keep this phone's own schedule.
+      if (e instanceof FamilyError && e.kind === 'not_found') {
+        setHousehold(null);
+        await persist({ ...settingsRef.current, householdCode: '', scheduleUpdatedAt: undefined, schedulePending: false });
+      }
+      // Otherwise keep showing the last known state if the connection drops; try again next time.
     }
   }, [code, persist]);
 
@@ -125,6 +131,15 @@ export default function App() {
     if (next.schedulePending && next.householdCode === settings.householdCode) refresh();
   };
 
+  // Remove everything Clocka has saved on this phone and start again.
+  // (Stable, because the family screen's refresh depends on it.)
+  const resetPhone = useCallback(async () => {
+    setShowSettings(false);
+    setHousehold(null);
+    await clearReminders().catch(() => {});
+    await persist(DEFAULT_SETTINGS);
+  }, [persist]);
+
   // Going back to "who is this phone for?" also re-runs first-run setup.
   const chooseRole = (role: Role | undefined) => save({ ...settings, role, ...(role ? {} : { setupDone: false }) });
 
@@ -136,7 +151,7 @@ export default function App() {
   } else if (settings.role === 'patient' && !settings.setupDone) {
     screen = <PatientSetup settings={settings} onDone={(s) => save({ ...s, setupDone: true })} onBack={() => chooseRole(undefined)} />;
   } else if (settings.role === 'carer') {
-    screen = <FamilyScreen settings={settings} onSave={save} onChangeRole={() => chooseRole(undefined)} />;
+    screen = <FamilyScreen settings={settings} onSave={save} onChangeRole={() => chooseRole(undefined)} onReset={resetPhone} />;
   } else if (showSettings) {
     screen = (
       <SettingsScreen
@@ -145,6 +160,7 @@ export default function App() {
         onSave={save}
         onClose={() => setShowSettings(false)}
         onChangeRole={() => chooseRole(undefined)}
+        onReset={resetPhone}
       />
     );
   } else {
