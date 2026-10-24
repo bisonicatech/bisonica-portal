@@ -76,7 +76,7 @@ household can be given Premium free for life in the SQL Editor:
    (`com.bisonica.dayguide`) with an App Store Connect in-app purchase key,
    create an entitlement `premium` containing both products, and a default
    offering with Monthly and Annual packages.
-4. Put RevenueCat's public iOS key (starts `appl_`) in `eas.json` as
+4. Add RevenueCat's public iOS key (starts `appl_`) to `eas.json` as
    `EXPO_PUBLIC_REVENUECAT_IOS_KEY`, and a privacy policy link as
    `EXPO_PUBLIC_PRIVACY_URL`, then rebuild.
 
