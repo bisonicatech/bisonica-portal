@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { Entry, Mode, Settings, newId, parseTime, sortEntries } from './schedule';
-import { Household, familyEnabled, getHousehold } from './family';
+import { Household, familyEnabled, getHousehold, redeemLinkCode } from './family';
 import { Button, Screen, doneProps, form } from './ui';
 
 type Props = {
@@ -26,6 +26,7 @@ export default function SettingsScreen({ settings, household, onSave, onClose, o
   const [draft, setDraft] = useState<Settings>(settings);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [linkInput, setLinkInput] = useState('');
 
   if (!unlocked) {
     // A PIN saved by an older version may be longer than 4 digits.
@@ -77,12 +78,19 @@ export default function SettingsScreen({ settings, household, onSave, onClose, o
     if (!/^\d{4}$/.test(draft.pin)) return setError('The PIN must be exactly 4 digits.');
     let next = { ...draft, entries: sortEntries(draft.entries) };
 
-    // Check a new family code before saving, and take the names and number from it.
-    if (familyEnabled && next.householdCode && next.householdCode !== settings.householdCode) {
+    // Link with the family member's phone: a 6-digit link code, or (older servers) the long household code.
+    const typed = linkInput.trim();
+    if (familyEnabled && typed) {
       setSaving(true);
       try {
-        const h = await getHousehold(next.householdCode);
-        next = { ...next, name: h.patient_name || next.name, carerName: h.carer_name || next.carerName, carerPhone: h.carer_phone || next.carerPhone };
+        const h = /^\d{6}$/.test(typed) ? await redeemLinkCode(typed) : await getHousehold(typed);
+        next = {
+          ...next,
+          householdCode: h.code,
+          name: h.patient_name || next.name,
+          carerName: h.carer_name || next.carerName,
+          carerPhone: h.carer_phone || next.carerPhone,
+        };
       } catch (e) {
         setSaving(false);
         return setError((e as Error).message);
@@ -109,29 +117,29 @@ export default function SettingsScreen({ settings, household, onSave, onClose, o
       {familyEnabled && (
         <View style={[styles.card, { marginTop: 16 }]}>
           <Text style={styles.h3}>Link to {carer}'s phone</Text>
-          <Text style={styles.label}>Family code (shown in {carer}'s DayGuide app)</Text>
+          {linked ? (
+            <Text style={styles.ok}>✓ Linked to {carer}'s phone</Text>
+          ) : settings.householdCode ? (
+            <Text style={styles.warn}>Can't reach {carer}'s phone right now. Check the internet connection.</Text>
+          ) : (
+            <Text style={styles.warn}>Not linked yet.</Text>
+          )}
+          <Text style={styles.label}>
+            {linked ? 'To link again, enter' : 'Enter'} the 6-digit link code shown on {carer}'s phone
+          </Text>
           <TextInput
             style={[styles.input, styles.code]}
-            value={draft.householdCode}
+            value={linkInput}
             onChangeText={(t) => {
               setError('');
-              setDraft({ ...draft, householdCode: t.replace(/[^0-9a-z]/gi, '').toUpperCase() });
+              setLinkInput(t.replace(/[^0-9a-z]/gi, '').toUpperCase().slice(0, 10));
             }}
-            autoCapitalize="characters"
-            autoCorrect={false}
-            spellCheck={false}
-            keyboardType="default"
+            keyboardType="number-pad"
             maxLength={10}
-            placeholder="e.g. 4A5891DA82"
+            placeholder="123 456"
             {...doneProps}
           />
-          {linked && draft.householdCode === settings.householdCode ? (
-            <Text style={styles.ok}>✓ Linked to {carer}'s phone</Text>
-          ) : settings.householdCode && draft.householdCode === settings.householdCode ? (
-            <Text style={styles.warn}>Saved, but can't reach {carer}'s phone right now. Check the internet connection.</Text>
-          ) : (
-            <Text style={styles.hint}>Type the code, then tap Save. It's checked when you save.</Text>
-          )}
+          <Text style={styles.hint}>Then tap Save. This is not the settings PIN.</Text>
         </View>
       )}
 
@@ -217,7 +225,7 @@ export default function SettingsScreen({ settings, household, onSave, onClose, o
 const styles = StyleSheet.create({
   ...form,
   pin: { width: 140, textAlign: 'center', fontSize: 26, letterSpacing: 8 },
-  code: { fontSize: 22, letterSpacing: 2 },
+  code: { fontSize: 28, letterSpacing: 6, textAlign: 'center' },
   h3: { fontSize: 18, fontWeight: '700', color: '#111' },
   time: { width: 90, textAlign: 'center' },
   icon: { width: 60, textAlign: 'center' },

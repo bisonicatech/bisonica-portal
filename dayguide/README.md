@@ -27,8 +27,9 @@ Android from one codebase (Expo / React Native).
 ## Family features: Out mode and check-ins
 
 On first launch each phone is set up either for the person being cared for
-(David) or for a family member (Carrie). Carrie's app creates a family code,
-which is typed into David's settings to link the two phones.
+(David) or for a family member (Carrie). Carrie's app shows a 6-digit link
+code (single use, lasts 15 minutes), which is typed into the top of David's
+settings to link the two phones. It is separate from the settings PIN.
 
 - **Out mode.** Before going out, Carrie sets when she'll be back and how often
   to check in. David's screen then shows her message instead of the schedule,
@@ -54,7 +55,9 @@ on its own; the family features are just hidden.
 2. In the **SQL Editor**, run
    [`supabase/migrations/0001_dayguide_family.sql`](supabase/migrations/0001_dayguide_family.sql),
    then [`0002_patient_seen.sql`](supabase/migrations/0002_patient_seen.sql)
-   (lets the family member see whether the cared-for phone is connected).
+   (lets the family member see whether the cared-for phone is connected) and
+   [`0003_link_codes.sql`](supabase/migrations/0003_link_codes.sql)
+   (6-digit link codes).
 3. Put the project URL and the anon or publishable key (from **Project
    Settings → API Keys**) in `eas.json` for app builds, and in `.env` (copy
    `.env.example`) for running locally. Both are public values that ship

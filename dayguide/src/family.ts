@@ -53,6 +53,9 @@ async function rpc<T>(fn: string, args: Record<string, unknown>): Promise<T> {
   const text = await res.text();
   if (!res.ok) {
     if (text.includes('household_not_found')) throw new FamilyError("That code wasn't found. Check it and try again.", 'not_found');
+    if (text.includes('link_code_not_found')) {
+      throw new FamilyError("That link code isn't right or has run out. Get a new one on the family member's phone.", 'not_found');
+    }
     if (text.includes('PGRST202')) throw new FamilyError('Server needs updating.', 'missing_function');
     throw new FamilyError('Could not reach the server. Check the internet connection.', 'network');
   }
@@ -74,6 +77,13 @@ export async function getHouseholdAsPatient(code: string): Promise<Household> {
     throw e;
   }
 }
+
+/** Family member's phone: a new single-use 6-digit code for linking the cared-for phone (lasts 15 minutes). */
+export const newLinkCode = (code: string) =>
+  rpc<{ link_code: string; expires_at: string }>('dg_new_link_code', { p_code: code });
+
+/** Cared-for person's phone: swap a 6-digit link code for the household. */
+export const redeemLinkCode = (linkCode: string) => rpc<Household>('dg_use_link_code', { p_link_code: linkCode });
 
 export const updateHousehold = (code: string, patientName: string, carerName: string, carerPhone: string) =>
   rpc<Household>('dg_update_household', { p_code: code, p_patient_name: patientName, p_carer_name: carerName, p_carer_phone: carerPhone });

@@ -2,12 +2,14 @@ import { useCallback, useEffect, useState } from 'react';
 import { AppState, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Settings } from './schedule';
 import {
+  FamilyError,
   Household,
   createHousehold,
   endOut,
   familyEnabled,
   formatTime,
   getHousehold,
+  newLinkCode,
   registerForPush,
   startOut,
 } from './family';
@@ -112,6 +114,7 @@ export default function FamilyScreen({ settings, onSave, onChangeRole }: Props) 
     <Screen>
       <Text style={form.h1}>{patient}</Text>
       {household && <PhoneStatus household={household} patient={patient} />}
+      {household && !household.patient_seen_at && <LinkCard code={code} patient={patient} startOpen />}
 
       {!household ? (
         <Text style={form.hint}>{error || 'Loading…'}</Text>
@@ -123,19 +126,73 @@ export default function FamilyScreen({ settings, onSave, onChangeRole }: Props) 
 
       {!!error && !!household && <Text style={form.error}>{error}</Text>}
 
-      <View style={[form.card, { marginTop: 32 }]}>
-        <Text style={form.label}>Code for {patient}'s phone</Text>
-        <Text style={styles.code} selectable>
-          {code}
-        </Text>
-        <Text style={form.hint}>
-          On {patient}'s phone: hold the clock time for 3 seconds, enter the PIN, and type this into "Family code".
-        </Text>
-      </View>
-      <Pressable onPress={onChangeRole}>
+      {household && !!household.patient_seen_at && <LinkCard code={code} patient={patient} />}
+      <Pressable onPress={onChangeRole} style={{ marginTop: 24 }}>
         <Text style={form.hint}>Change what this phone is for…</Text>
       </Pressable>
     </Screen>
+  );
+}
+
+/** Shows a short single-use code for linking the cared-for person's phone. */
+function LinkCard({ code, patient, startOpen }: { code: string; patient: string; startOpen?: boolean }) {
+  const [open, setOpen] = useState(!!startOpen);
+  const [link, setLink] = useState<{ link_code: string; expires_at: string } | null>(null);
+  const [legacy, setLegacy] = useState(false);
+  const [err, setErr] = useState('');
+  const [now, setNow] = useState(Date.now());
+
+  const make = useCallback(async () => {
+    try {
+      setLink(await newLinkCode(code));
+      setErr('');
+    } catch (e) {
+      if (e instanceof FamilyError && e.kind === 'missing_function') setLegacy(true);
+      else setErr((e as Error).message);
+    }
+  }, [code]);
+
+  useEffect(() => {
+    if (open && !link && !legacy) make();
+  }, [open, link, legacy, make]);
+
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 15_000);
+    return () => clearInterval(t);
+  }, []);
+
+  if (!open) {
+    return (
+      <Pressable onPress={() => setOpen(true)} style={{ marginTop: 32 }}>
+        <Text style={[form.hint, { color: '#1f3b73', fontWeight: '600' }]}>Link {patient}'s phone again…</Text>
+      </Pressable>
+    );
+  }
+
+  const expired = !!link && new Date(link.expires_at).getTime() <= now;
+  const shown = legacy ? code : link ? `${link.link_code.slice(0, 3)} ${link.link_code.slice(3)}` : '… …';
+
+  return (
+    <View style={[form.card, { marginTop: 16 }]}>
+      <Text style={styles.linkTitle}>Link {patient}'s phone</Text>
+      <Text style={form.hint}>
+        1. On {patient}'s phone, hold the clock time for 3 seconds.{'\n'}
+        2. Enter the 4-digit settings PIN (1234 unless it's been changed).{'\n'}
+        3. Type this link code at the top and tap Save.
+      </Text>
+      <Text style={[styles.code, expired && { color: '#aaa', textDecorationLine: 'line-through' }]} selectable>
+        {shown}
+      </Text>
+      {legacy ? (
+        <Text style={form.warn}>The server needs updating (0003_link_codes.sql) before short codes work.</Text>
+      ) : expired ? (
+        <Text style={form.warn}>This code has run out. Get a new one.</Text>
+      ) : link ? (
+        <Text style={form.hint}>Works once, until {formatTime(link.expires_at)}. This is not the settings PIN.</Text>
+      ) : null}
+      {!!err && <Text style={form.error}>{err}</Text>}
+      {!legacy && <Button label="Get a new code" onPress={make} />}
+    </View>
   );
 }
 
@@ -143,7 +200,7 @@ export default function FamilyScreen({ settings, onSave, onChangeRole }: Props) 
 function PhoneStatus({ household: h, patient }: { household: Household; patient: string }) {
   if (h.patient_seen_at === undefined) return null; // server not updated yet
   if (!h.patient_seen_at) {
-    return <Text style={form.warn}>⚠️ {patient}'s phone isn't linked yet. Enter the code below on it.</Text>;
+    return <Text style={form.warn}>⚠️ {patient}'s phone isn't linked yet.</Text>;
   }
   const mins = Math.round((Date.now() - new Date(h.patient_seen_at).getTime()) / 60000);
   if (mins <= 2) return <Text style={form.ok}>✓ {patient}'s phone is connected</Text>;
@@ -293,7 +350,8 @@ function Setup({ settings, onSave, onChangeRole }: Props) {
 }
 
 const styles = StyleSheet.create({
-  code: { fontSize: 30, fontWeight: '800', letterSpacing: 3, color: '#111', marginVertical: 6 },
+  code: { fontSize: 44, fontWeight: '800', letterSpacing: 4, color: '#111', marginVertical: 8, textAlign: 'center' },
+  linkTitle: { fontSize: 20, fontWeight: '800', color: '#1f3b73', marginBottom: 6 },
   outCard: { backgroundColor: '#eef7ee', borderColor: '#bfe0c2' },
   outTitle: { fontSize: 20, fontWeight: '800', color: '#1e6b2f', marginBottom: 6 },
   quote: { fontSize: 17, fontStyle: 'italic', color: '#222' },
