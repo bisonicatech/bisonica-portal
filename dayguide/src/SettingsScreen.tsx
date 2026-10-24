@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Settings, scheduleError, sortEntries } from './schedule';
 import ScheduleEditor from './ScheduleEditor';
-import { Household, familyEnabled, getHousehold, redeemLinkCode } from './family';
+import { Household, familyEnabled, getHousehold, hasPremium, redeemLinkCode } from './family';
 import { Button, Screen, doneProps, form } from './ui';
 
 type Props = {
@@ -154,7 +154,11 @@ export default function SettingsScreen({ settings, household, onSave, onClose, o
 
       <Text style={styles.h2}>Daily schedule</Text>
       {linked && <Text style={styles.hint}>Shared with {carer}'s phone. Changes made on either phone show on both.</Text>}
-      <ScheduleEditor entries={draft.entries} onChange={(entries) => setDraft((d) => ({ ...d, entries }))} />
+      <ScheduleEditor
+        entries={draft.entries}
+        onChange={(entries) => setDraft((d) => ({ ...d, entries }))}
+        premium={linked && hasPremium(household)}
+      />
       {!!error && <Text style={styles.error}>{error}</Text>}
       <View style={{ marginTop: 12 }}>{saveRow}</View>
       <Pressable onPress={onChangeRole} style={{ marginTop: 32 }}>

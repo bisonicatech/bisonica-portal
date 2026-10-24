@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
-import { Settings, fillName, parseTime } from './schedule';
+import { Settings, fillName, isDaySpecific, parseTime } from './schedule';
 
 const CHANNEL = 'daily-prompts';
 
@@ -36,22 +36,34 @@ export async function syncReminders(settings: Settings): Promise<boolean> {
 
   await Notifications.cancelAllScheduledNotificationsAsync();
 
+  // iPhones keep at most 64 scheduled reminders, so stop a little short of that.
+  let budget = 60;
   for (const e of settings.entries) {
     const mins = parseTime(e.time);
     if (mins === null || e.mode === 'night' || !e.sound) continue;
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: `${e.icon}  ${fillName(e.message, settings.name)}`,
-        body: 'Tap to see what to do now.',
-        sound: 'default',
-      },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.DAILY,
-        hour: Math.floor(mins / 60),
-        minute: mins % 60,
-        channelId: CHANNEL,
-      },
-    });
+    const content = {
+      title: `${e.icon}  ${fillName(e.message, settings.name)}`,
+      body: 'Tap to see what to do now.',
+      sound: 'default',
+    };
+    const hour = Math.floor(mins / 60);
+    const minute = mins % 60;
+    if (!isDaySpecific(e)) {
+      if (budget-- <= 0) break;
+      await Notifications.scheduleNotificationAsync({
+        content,
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.DAILY, hour, minute, channelId: CHANNEL },
+      });
+      continue;
+    }
+    for (const day of e.days!) {
+      if (budget-- <= 0) break;
+      await Notifications.scheduleNotificationAsync({
+        content,
+        // Expo counts weekdays from 1 = Sunday.
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.WEEKLY, weekday: day + 1, hour, minute, channelId: CHANNEL },
+      });
+    }
   }
   return true;
 }

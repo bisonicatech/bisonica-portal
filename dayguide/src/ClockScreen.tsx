@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Linking, Platform, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Mode, Settings, currentEntry, fillName, periodLabel } from './schedule';
-import { Household, checkInDue, formatTime } from './family';
+import { Household, checkInDue, formatTime, hasPremium } from './family';
 
 const THEMES: Record<Mode, { bg: string; text: string; sub: string }> = {
   night: { bg: '#05070f', text: '#7f86a8', sub: '#4d5373' },
@@ -35,12 +35,20 @@ export default function ClockScreen({ settings, household, onOpenSettings, onChe
   const isOut = !!household?.is_out;
   const askOkay = checkInDue(household, now);
 
-  // While the family member is out, their message replaces the schedule.
-  const icon = isOut ? '🏡' : entry?.icon;
-  const message = isOut ? household!.out_message : entry ? fillName(entry.message, settings.name) : '';
+  const premium = hasPremium(household);
+  // A one-off message from the family (Premium) comes first, then Out mode, then the schedule.
+  const adhoc =
+    premium && household?.adhoc_message && household.adhoc_until && new Date(household.adhoc_until) > now ? household.adhoc_message : '';
+  const icon = adhoc ? '💬' : isOut ? '🏡' : entry?.icon;
+  const message = adhoc || (isOut ? household!.out_message : entry ? fillName(entry.message, settings.name) : '');
 
   const carerName = household?.carer_name || settings.carerName;
   const carerPhone = household?.carer_phone || settings.carerPhone;
+  const showCalls = mode !== 'night' || isOut;
+  // Premium: extra call buttons and a FaceTime video call button (iPhone only).
+  const extras = premium && showCalls ? (household?.contacts ?? []) : [];
+  const video = premium && showCalls && Platform.OS === 'ios' ? household?.video_contact : null;
+  const dial = (phone: string) => Linking.openURL(`tel:${phone.replace(/[^\d+]/g, '')}`).catch(() => {});
 
   const time = formatTime(now);
   const day = now.toLocaleDateString('en-GB', { weekday: 'long' });
@@ -55,8 +63,8 @@ export default function ClockScreen({ settings, household, onOpenSettings, onChe
   };
 
   // Size everything from the smaller of width and height so it fits on any phone.
-  const busy = askOkay || !!carerPhone;
-  const base = Math.min(width, height * (busy ? 0.5 : 0.6), 600);
+  const buttons = (askOkay ? 1 : 0) + (carerPhone && showCalls ? 1 : 0) + Math.ceil(extras.length / 2) + (video ? 1 : 0);
+  const base = Math.min(width, height * (buttons === 0 ? 0.6 : buttons <= 2 ? 0.5 : 0.4), 600);
 
   return (
     <ScrollView
@@ -88,14 +96,32 @@ export default function ClockScreen({ settings, household, onOpenSettings, onChe
         </Pressable>
       )}
 
-      {!!carerPhone && (mode !== 'night' || isOut) && (
-        <Pressable
-          onPress={() => Linking.openURL(`tel:${carerPhone.replace(/[^\d+]/g, '')}`)}
-          style={[styles.bigButton, styles.call]}
-          accessibilityRole="button"
-        >
+      {!!carerPhone && showCalls && (
+        <Pressable onPress={() => dial(carerPhone)} style={[styles.bigButton, styles.call]} accessibilityRole="button">
           <Text style={styles.bigButtonText}>📞 Call {carerName || 'family'}</Text>
         </Pressable>
+      )}
+
+      {!!video && (
+        <Pressable
+          onPress={() => Linking.openURL(`facetime:${video.handle.replace(/\s/g, '')}`).catch(() => {})}
+          style={[styles.bigButton, styles.video]}
+          accessibilityRole="button"
+        >
+          <Text style={styles.bigButtonText}>🎥 Video call {video.name}</Text>
+        </Pressable>
+      )}
+
+      {extras.length > 0 && (
+        <View style={styles.extras}>
+          {extras.map((c, i) => (
+            <Pressable key={i} onPress={() => dial(c.phone)} style={styles.smallButton} accessibilityRole="button">
+              <Text style={styles.smallButtonText} numberOfLines={1}>
+                📞 {c.name}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
       )}
     </ScrollView>
   );
@@ -111,6 +137,10 @@ const styles = StyleSheet.create({
   bigButton: { marginTop: 18, borderRadius: 20, paddingVertical: 14, paddingHorizontal: 28, alignItems: 'center', minWidth: 260 },
   okay: { backgroundColor: '#1e8e3e' },
   call: { backgroundColor: '#1f3b73' },
+  video: { backgroundColor: '#5b3fa0' },
+  extras: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 10, marginTop: 14, maxWidth: 560 },
+  smallButton: { backgroundColor: '#2f5597', borderRadius: 16, paddingVertical: 12, paddingHorizontal: 16, minWidth: 150, alignItems: 'center' },
+  smallButtonText: { color: '#fff', fontSize: 20, fontWeight: '700' },
   bigButtonText: { color: '#fff', fontSize: 26, fontWeight: '800' },
   bigButtonSub: { color: '#e6ffe9', fontSize: 17, marginTop: 4 },
 });

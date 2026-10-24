@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
-import { Entry, Mode, newId } from './schedule';
+import { DAY_NAMES, Entry, FREE_MAX_TIMES, Mode, isDaySpecific, newId } from './schedule';
 import { Button, doneProps, form } from './ui';
 
 const MODES: { mode: Mode; label: string }[] = [
@@ -10,7 +10,24 @@ const MODES: { mode: Mode; label: string }[] = [
 ];
 
 /** Edit the daily list of times and messages. Used on both phones. */
-export default function ScheduleEditor({ entries, onChange }: { entries: Entry[]; onChange: (entries: Entry[]) => void }) {
+type Props = {
+  entries: Entry[];
+  onChange: (entries: Entry[]) => void;
+  /** Premium: unlimited times and different times on different days. */
+  premium: boolean;
+  /** Shown on the free plan when a Premium feature is reached. Omit where upgrading isn't possible. */
+  onUpgrade?: () => void;
+};
+
+export default function ScheduleEditor({ entries, onChange, premium, onUpgrade }: Props) {
+  const atLimit = !premium && entries.length >= FREE_MAX_TIMES;
+  const toggleDay = (e: Entry, day: number) => {
+    // From "Every day", tapping a day means "only this day"; after that, taps add or remove days.
+    const current = isDaySpecific(e) ? e.days! : [];
+    const next = current.includes(day) ? current.filter((d) => d !== day) : [...current, day].sort();
+    // All days (or none) means every day.
+    update(e.id, { days: next.length === 0 || next.length === 7 ? undefined : next });
+  };
   const update = (id: string, patch: Partial<Entry>) => onChange(entries.map((e) => (e.id === id ? { ...e, ...patch } : e)));
   const remove = (id: string) => onChange(entries.filter((e) => e.id !== id));
   const add = () => onChange([...entries, { id: newId(), time: '12:00', mode: 'day', sound: true, icon: '🙂', message: '' }]);
@@ -46,6 +63,23 @@ export default function ScheduleEditor({ entries, onChange }: { entries: Entry[]
               </Pressable>
             ))}
           </View>
+          {premium ? (
+            <View style={styles.modes}>
+              <Pressable onPress={() => update(e.id, { days: undefined })} style={[styles.day, !isDaySpecific(e) && form.chipOn]}>
+                <Text style={[form.chipText, !isDaySpecific(e) && form.chipTextOn]}>Every day</Text>
+              </Pressable>
+              {DAY_NAMES.map((d, i) => {
+                const on = isDaySpecific(e) && e.days!.includes(i);
+                return (
+                  <Pressable key={d} onPress={() => toggleDay(e, i)} style={[styles.day, on && form.chipOn]}>
+                    <Text style={[form.chipText, on && form.chipTextOn]}>{d}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          ) : (
+            isDaySpecific(e) && <Text style={form.warn}>Only on {e.days!.map((d) => DAY_NAMES[d]).join(', ')} (Premium).</Text>
+          )}
           {e.mode !== 'night' && (
             <View style={form.row}>
               <Switch value={e.sound} onValueChange={(sound) => update(e.id, { sound })} />
@@ -55,7 +89,25 @@ export default function ScheduleEditor({ entries, onChange }: { entries: Entry[]
         </View>
       ))}
 
-      <Button label="+ Add a time" onPress={add} />
+      {atLimit ? (
+        <View style={[form.card, styles.limit]}>
+          <Text style={form.hint}>The free plan has up to {FREE_MAX_TIMES} times a day, the same every day.</Text>
+          {onUpgrade ? (
+            <Pressable onPress={onUpgrade}>
+              <Text style={styles.upgrade}>⭐ Premium: unlimited times, different days ›</Text>
+            </Pressable>
+          ) : (
+            <Text style={form.hint}>The main family member can upgrade to Premium for more.</Text>
+          )}
+        </View>
+      ) : (
+        <Button label="+ Add a time" onPress={add} />
+      )}
+      {!premium && onUpgrade && !atLimit && (
+        <Pressable onPress={onUpgrade}>
+          <Text style={styles.upgrade}>⭐ Different times on different days? See Premium ›</Text>
+        </Pressable>
+      )}
     </>
   );
 }
@@ -67,4 +119,7 @@ const styles = StyleSheet.create({
   deleteText: { color: '#c0392b', fontWeight: '600' },
   modes: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginVertical: 6 },
   switchLabel: { fontSize: 15, color: '#333' },
+  day: { borderWidth: 1, borderColor: '#99a', borderRadius: 14, paddingVertical: 5, paddingHorizontal: 9 },
+  limit: { backgroundColor: '#fbfaf4', borderColor: '#efe6c6', marginTop: 8 },
+  upgrade: { color: '#1f3b73', fontWeight: '700', fontSize: 15, marginTop: 10 },
 });

@@ -9,7 +9,20 @@ export type Entry = {
   mode: Mode;
   /** Play a reminder sound at this time. Always ignored for night entries. */
   sound: boolean;
+  /** Days this applies on (0 = Sunday … 6 = Saturday). Missing or empty = every day. Premium. */
+  days?: number[];
 };
+
+/** Free plan limit on daily times. */
+export const FREE_MAX_TIMES = 8;
+
+export const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+/** True if the entry applies on this weekday (0 = Sunday). */
+export const activeOn = (e: Entry, weekday: number) => !e.days || e.days.length === 0 || e.days.includes(weekday);
+
+/** True if the entry is limited to some days of the week. */
+export const isDaySpecific = (e: Entry) => !!e.days && e.days.length > 0 && e.days.length < 7;
 
 export type Role = 'patient' | 'carer';
 
@@ -50,7 +63,6 @@ export const DEFAULT_SETTINGS: Settings = {
     { id: 'e2', time: '08:00', mode: 'morning', sound: true, icon: '🍳', message: 'Time for breakfast.' },
     { id: 'e3', time: '10:00', mode: 'day', sound: false, icon: '☕', message: 'Time for a cup of tea. Maybe read the paper.' },
     { id: 'e4', time: '12:30', mode: 'day', sound: true, icon: '🍽️', message: 'Time for lunch.' },
-    { id: 'e5', time: '15:00', mode: 'day', sound: false, icon: '🚶', message: 'A good time for a short walk or a sit in the garden.' },
     { id: 'e6', time: '18:00', mode: 'evening', sound: true, icon: '🍲', message: 'Time for dinner.' },
     { id: 'e7', time: '21:00', mode: 'evening', sound: true, icon: '🛁', message: 'Time to get ready for bed.' },
     { id: 'e8', time: '22:00', mode: 'night', sound: false, icon: '🌙', message: "It's night-time. Time to sleep." },
@@ -70,16 +82,20 @@ export const parseTime = (t: string): number | null => {
 export const sortEntries = (entries: Entry[]) =>
   [...entries].sort((a, b) => (parseTime(a.time) ?? 0) - (parseTime(b.time) ?? 0));
 
-/** The entry that applies right now: the latest one at or before now, wrapping round from yesterday. */
+/**
+ * The entry that applies right now: the latest one at or before now today,
+ * otherwise the last one on an earlier day (looking back up to a week).
+ */
 export function currentEntry(entries: Entry[], now: Date): Entry | null {
   const valid = sortEntries(entries.filter((e) => parseTime(e.time) !== null));
   if (valid.length === 0) return null;
   const mins = now.getHours() * 60 + now.getMinutes();
-  let found = valid[valid.length - 1];
-  for (const e of valid) {
-    if ((parseTime(e.time) as number) <= mins) found = e;
+  for (let back = 0; back <= 7; back++) {
+    const weekday = (now.getDay() - back + 7) % 7;
+    const candidates = valid.filter((e) => activeOn(e, weekday) && (back > 0 || (parseTime(e.time) as number) <= mins));
+    if (candidates.length) return candidates[candidates.length - 1];
   }
-  return found;
+  return null;
 }
 
 export function periodLabel(now: Date, mode: Mode | undefined): string {

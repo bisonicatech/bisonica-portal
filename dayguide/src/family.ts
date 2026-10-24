@@ -29,10 +29,29 @@ export type Household = {
   /** Shared daily schedule. null = never shared yet; missing = server needs 0004_shared_schedule.sql. */
   schedule?: Entry[] | null;
   schedule_updated_at?: string | null;
+  /** Plans (0005_premium.sql). Missing on older servers, which behave as Premium. */
+  is_premium?: boolean;
+  /** Free for life. */
+  comp?: boolean;
+  premium_until?: string | null;
+  /** One-off message for the cared-for screen (only while it's current). */
+  adhoc_message?: string | null;
+  adhoc_until?: string | null;
+  /** Extra call buttons. */
+  contacts?: Contact[];
+  /** One person to video call (FaceTime). */
+  video_contact?: VideoContact | null;
+  family_count?: number;
 };
 
+export type Contact = { name: string; phone: string };
+export type VideoContact = { name: string; handle: string };
+
+/** Whether Premium features are available. Servers without plans count as Premium so nothing breaks. */
+export const hasPremium = (h: Household | null | undefined) => !!h && h.is_premium !== false;
+
 export class FamilyError extends Error {
-  constructor(message: string, public kind: 'not_found' | 'missing_function' | 'network') {
+  constructor(message: string, public kind: 'not_found' | 'missing_function' | 'network' | 'premium_required' | 'member_limit') {
     super(message);
   }
 }
@@ -59,6 +78,13 @@ async function rpc<T>(fn: string, args: Record<string, unknown>): Promise<T> {
     if (text.includes('household_not_found')) throw new FamilyError("That code wasn't found. Check it and try again.", 'not_found');
     if (text.includes('link_code_not_found')) {
       throw new FamilyError("That link code isn't right or has run out. Get a new one on the family member's phone.", 'not_found');
+    }
+    if (text.includes('premium_required')) throw new FamilyError('This needs DayGuide Premium.', 'premium_required');
+    if (text.includes('member_limit')) {
+      throw new FamilyError(
+        'The free plan includes one family member. The main family member can upgrade to Premium to add more people.',
+        'member_limit',
+      );
     }
     if (text.includes('PGRST202')) throw new FamilyError('Server needs updating.', 'missing_function');
     throw new FamilyError('Could not reach the server. Check the internet connection.', 'network');
@@ -92,6 +118,28 @@ export const redeemLinkCode = (linkCode: string) => rpc<Household>('dg_use_link_
 /** Either phone: replace the shared daily schedule. */
 export const setSchedule = (code: string, entries: Entry[]) =>
   rpc<Household>('dg_set_schedule', { p_code: code, p_schedule: entries });
+
+/** Another family member joins with a 6-digit link code (Premium allows more than one). */
+export async function joinFamily(linkCode: string, name: string): Promise<Household> {
+  try {
+    return await rpc<Household>('dg_join_family', { p_link_code: linkCode, p_name: name });
+  } catch (e) {
+    // Older server without plans.
+    if (e instanceof FamilyError && e.kind === 'missing_function') return redeemLinkCode(linkCode);
+    throw e;
+  }
+}
+
+/** Record the household's Premium end date after a purchase or restore. */
+export const setPremium = (code: string, until: Date) => rpc<Household>('dg_set_premium', { p_code: code, p_until: until.toISOString() });
+
+/** Premium: show a one-off message on the cared-for screen for a while (empty message clears it). */
+export const sendMessage = (code: string, message: string, minutes: number) =>
+  rpc<Household>('dg_send_message', { p_code: code, p_message: message, p_minutes: minutes });
+
+/** Premium: extra call buttons and the video call contact. */
+export const setContacts = (code: string, contacts: Contact[], video: VideoContact | null) =>
+  rpc<Household>('dg_set_contacts', { p_code: code, p_contacts: contacts, p_video_contact: video });
 
 export const updateHousehold = (code: string, patientName: string, carerName: string, carerPhone: string) =>
   rpc<Household>('dg_update_household', { p_code: code, p_patient_name: patientName, p_carer_name: carerName, p_carer_phone: carerPhone });

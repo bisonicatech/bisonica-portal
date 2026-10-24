@@ -2,6 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { AppState, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { DEFAULT_SETTINGS, Entry, Settings, currentEntry, fillName, scheduleError, sortEntries } from './schedule';
 import ScheduleEditor from './ScheduleEditor';
+import Paywall from './Paywall';
+import { ContactsCard, MessageCard, PlanCard } from './PremiumCards';
+import { currentPremiumUntil, purchasesEnabled, setupPurchases } from './purchases';
 import {
   FamilyError,
   Household,
@@ -10,8 +13,10 @@ import {
   familyEnabled,
   formatTime,
   getHousehold,
+  hasPremium,
+  joinFamily,
+  setPremium,
   newLinkCode,
-  redeemLinkCode,
   registerForPush,
   setSchedule,
   startOut,
@@ -62,6 +67,17 @@ export default function FamilyScreen({ settings, onSave, onChangeRole }: Props) 
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
+
+  // If this household has a subscription in the App Store (e.g. bought on another
+  // family member's phone, or renewed), make sure the server knows.
+  useEffect(() => {
+    if (!code || !purchasesEnabled) return;
+    setupPurchases(code)
+      .then(currentPremiumUntil)
+      .then((until) => (until && until > new Date() ? setPremium(code, until).then(setHousehold) : undefined))
+      .catch(() => {});
+  }, [code]);
 
   const refresh = useCallback(async () => {
     if (!code) return;
@@ -114,6 +130,27 @@ export default function FamilyScreen({ settings, onSave, onChangeRole }: Props) 
 
   const patient = household?.patient_name || settings.name;
   const carer = household?.carer_name || settings.carerName;
+  // Extra family members' Out messages use their own name.
+  const myName = settings.getsAlerts === false && settings.carerName ? settings.carerName : carer;
+  const premium = hasPremium(household);
+  const upgrade = () => {
+    setEditingSchedule(false);
+    setShowPaywall(true);
+  };
+
+  if (showPaywall) {
+    return (
+      <Paywall
+        code={code}
+        patient={patient}
+        onClose={() => setShowPaywall(false)}
+        onPremium={(h) => {
+          setHousehold(h);
+          setShowPaywall(false);
+        }}
+      />
+    );
+  }
 
   if (editingSchedule && household) {
     return (
@@ -121,6 +158,8 @@ export default function FamilyScreen({ settings, onSave, onChangeRole }: Props) 
         code={code}
         household={household}
         patient={patient}
+        premium={premium}
+        onUpgrade={upgrade}
         onClose={() => setEditingSchedule(false)}
         onSaved={(h) => {
           setHousehold(h);
@@ -134,6 +173,7 @@ export default function FamilyScreen({ settings, onSave, onChangeRole }: Props) 
     <Screen>
       <Text style={form.h1}>{patient}</Text>
       {household && <PhoneStatus household={household} patient={patient} />}
+      {household && <PlanCard household={household} onUpgrade={upgrade} />}
       {household && !household.patient_seen_at && <LinkCard code={code} patient={patient} startOpen />}
 
       {!household ? (
@@ -148,7 +188,22 @@ export default function FamilyScreen({ settings, onSave, onChangeRole }: Props) 
               <Text style={styles.bigText}>📅 Edit {patient}'s daily schedule</Text>
             </Pressable>
           )}
-          <GoOut carer={carer} patient={patient} busy={busy} onStart={(back, msg, every) => run(() => startOut(code, back, msg, every))} />
+          <GoOut
+            carer={myName}
+            patient={patient}
+            busy={busy}
+            premium={premium}
+            onUpgrade={upgrade}
+            onStart={(back, msg, every) => run(() => startOut(code, back, msg, every))}
+          />
+        </>
+      )}
+
+      {household && household.is_premium !== undefined && (
+        <>
+          <View style={{ height: 16 }} />
+          <MessageCard code={code} household={household} patient={patient} onUpdate={setHousehold} onUpgrade={upgrade} />
+          <ContactsCard key={JSON.stringify([household.contacts, household.video_contact])} code={code} household={household} patient={patient} onUpdate={setHousehold} onUpgrade={upgrade} />
         </>
       )}
 
@@ -183,12 +238,16 @@ function ScheduleScreen({
   code,
   household,
   patient,
+  premium,
+  onUpgrade,
   onClose,
   onSaved,
 }: {
   code: string;
   household: Household;
   patient: string;
+  premium: boolean;
+  onUpgrade: () => void;
   onClose: () => void;
   onSaved: (h: Household) => void;
 }) {
@@ -203,7 +262,13 @@ function ScheduleScreen({
     try {
       onSaved(await setSchedule(code, sortEntries(entries)));
     } catch (e) {
-      setErr(e instanceof FamilyError && e.kind === 'missing_function' ? 'The server needs updating first (0004_shared_schedule.sql).' : (e as Error).message);
+      setErr(
+        e instanceof FamilyError && e.kind === 'missing_function'
+          ? 'The server needs updating first (0004_shared_schedule.sql).'
+          : e instanceof FamilyError && e.kind === 'premium_required'
+            ? 'More than 8 times, or different days, needs Premium.'
+            : (e as Error).message,
+      );
     } finally {
       setSaving(false);
     }
@@ -226,7 +291,7 @@ function ScheduleScreen({
       {buttons}
       {!!err && <Text style={form.error}>{err}</Text>}
       <View style={{ height: 12 }} />
-      <ScheduleEditor entries={entries} onChange={setEntries} />
+      <ScheduleEditor entries={entries} onChange={setEntries} premium={premium} onUpgrade={onUpgrade} />
       {!!err && <Text style={form.error}>{err}</Text>}
       <View style={{ marginTop: 12 }}>{buttons}</View>
     </Screen>
@@ -340,12 +405,27 @@ function OutStatus({ household: h, patient, busy, onHome }: { household: Househo
   );
 }
 
-function GoOut({ carer, patient, busy, onStart }: { carer: string; patient: string; busy: boolean; onStart: (back: Date, msg: string, every: number) => void }) {
+function GoOut({
+  carer,
+  patient,
+  busy,
+  premium,
+  onUpgrade,
+  onStart,
+}: {
+  carer: string;
+  patient: string;
+  busy: boolean;
+  premium: boolean;
+  onUpgrade: () => void;
+  onStart: (back: Date, msg: string, every: number) => void;
+}) {
   const [backText, setBackText] = useState(defaultBackTime);
   const [every, setEvery] = useState(60);
   const [custom, setCustom] = useState<string | null>(null);
   const back = parseBackTime(backText);
-  const message = custom ?? outMessage(carer, back);
+  // Writing your own Out message is a Premium feature.
+  const message = (premium && custom) || outMessage(carer, back);
 
   return (
     <>
@@ -366,7 +446,16 @@ function GoOut({ carer, patient, busy, onStart }: { carer: string; patient: stri
       </View>
 
       <Text style={form.label}>Message on {patient}'s screen</Text>
-      <TextInput style={[form.input, { minHeight: 90 }]} value={message} onChangeText={setCustom} multiline {...doneProps} />
+      {premium ? (
+        <TextInput style={[form.input, { minHeight: 90 }]} value={message} onChangeText={setCustom} multiline {...doneProps} />
+      ) : (
+        <>
+          <Text style={[styles.quote, { marginVertical: 4 }]}>“{message}”</Text>
+          <Pressable onPress={onUpgrade}>
+            <Text style={[form.hint, { color: '#1f3b73', fontWeight: '700' }]}>⭐ Write your own message with Premium ›</Text>
+          </Pressable>
+        </>
+      )}
 
       <Pressable
         onPress={() => back && onStart(back, message, every)}
@@ -395,14 +484,23 @@ function Setup({ settings, onSave, onChangeRole }: Props) {
     if (mode === 'new' && !carer.trim()) return setError('Please type your name.');
     setBusy(true);
     try {
+      if (mode === 'join' && !carer.trim()) {
+        setBusy(false);
+        return setError('Please type your name.');
+      }
       const h =
-        mode === 'new' ? await createHousehold(patient, carer, phone) : /^\d{6}$/.test(code) ? await redeemLinkCode(code) : await getHousehold(code);
+        mode === 'new'
+          ? await createHousehold(patient, carer, phone)
+          : /^\d{6}$/.test(code)
+            ? await joinFamily(code, carer)
+            : await getHousehold(code);
       // The phone that sets things up gets the alerts; family members who join with a code don't.
       onSave({
         ...settings,
         householdCode: h.code,
         name: h.patient_name,
-        carerName: h.carer_name,
+        // Extra family members keep their own name (used in their Out messages).
+        carerName: mode === 'new' ? h.carer_name : carer.trim(),
         carerPhone: h.carer_phone,
         getsAlerts: mode === 'new',
       });
@@ -436,6 +534,8 @@ function Setup({ settings, onSave, onChangeRole }: Props) {
         </>
       ) : (
         <>
+          <Text style={form.label}>Your name</Text>
+          <TextInput style={form.input} value={carer} onChangeText={setCarer} placeholder="e.g. Sarah" autoCapitalize="words" {...doneProps} />
           <Text style={form.label}>6-digit link code from the main family member's DayGuide</Text>
           <TextInput
             style={form.input}

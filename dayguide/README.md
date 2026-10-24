@@ -51,6 +51,38 @@ settings to link the two phones. It is separate from the settings PIN.
 ![David's phone: normal, Out mode, check-in](docs/family-david.png)
 ![Carrie's phone: going out, Out mode on, missed check-in](docs/family-carrie.png)
 
+## Plans
+
+| | Free | Premium (£2.99/month or £24.99/year, 1-month free trial) |
+|---|---|---|
+| Phones | Cared-for phone + 1 family member | Unlimited family members |
+| Daily schedule | Up to 8 times, same every day | Unlimited times, different days of the week |
+| Out mode | Standard message, check-ins, alerts | Own Out message + one-off messages any time |
+| Call buttons | One | Extra call buttons + a FaceTime video call button |
+
+Premium belongs to the household, so it covers every linked phone. A
+household can be given Premium free for life in the SQL Editor:
+`update dg_households set comp = true where code = '<household code>';`
+
+### Selling Premium (one-off setup)
+
+1. **App Store Connect → Business:** accept the Paid Apps Agreement and add
+   bank and tax details.
+2. **App Store Connect → DayGuide → Subscriptions:** create a group
+   "DayGuide Premium" with two auto-renewable subscriptions:
+   `dayguide.premium.monthly` (£2.99) and `dayguide.premium.yearly` (£24.99),
+   each with a 1-month free introductory offer.
+3. **RevenueCat (revenuecat.com):** create a project, add the iOS app
+   (`com.bisonica.dayguide`) with an App Store Connect in-app purchase key,
+   create an entitlement `premium` containing both products, and a default
+   offering with Monthly and Annual packages.
+4. Put RevenueCat's public iOS key (starts `appl_`) in `eas.json` as
+   `EXPO_PUBLIC_REVENUECAT_IOS_KEY`, and a privacy policy link as
+   `EXPO_PUBLIC_PRIVACY_URL`, then rebuild.
+
+Until then the app runs everything on the free plan, and the upgrade screen
+says subscriptions aren't available yet.
+
 ### Setting up the server (one-off)
 
 The family features use a Supabase project. Without one, the app still works
@@ -65,7 +97,8 @@ on its own; the family features are just hidden.
    [`0003_link_codes.sql`](supabase/migrations/0003_link_codes.sql)
    (6-digit link codes) and
    [`0004_shared_schedule.sql`](supabase/migrations/0004_shared_schedule.sql)
-   (schedule editing from the family member's phone).
+   (schedule editing from the family member's phone) and
+   [`0005_premium.sql`](supabase/migrations/0005_premium.sql) (free and Premium plans).
 3. Put the project URL and the anon or publishable key (from **Project
    Settings → API Keys**) in `eas.json` for app builds, and in `.env` (copy
    `.env.example`) for running locally. Both are public values that ship
@@ -90,8 +123,10 @@ For real use, build an installable app with EAS:
 
 - Lock-screen / home-screen widget, so the message is visible without opening
   the app (needs native widget code per platform).
-- Alerts to more than one family member (today only the most recent family
-  phone to open the app gets them).
+- Alerts to more than one family member (today only the phone that set the
+  household up gets them).
+- Server-side checking of App Store subscriptions (a RevenueCat webhook);
+  today the family member's app reports the subscription to the server.
 - Quiet alert to a carer's phone when he's using the phone at night.
 - Alert if the phone leaves home.
 - Recorded voice messages in a family member's voice.
