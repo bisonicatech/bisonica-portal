@@ -7,7 +7,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.bisonica.dayguide",
       "appleTeamId": "7A27PZ2BYM",
       "infoPlist": {
