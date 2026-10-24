@@ -5,7 +5,7 @@ import { Screen, form } from './ui';
 export default function WelcomeScreen({ onChoose }: { onChoose: (role: Role) => void }) {
   return (
     <Screen center>
-      <Text style={form.h1}>Welcome to DayGuide</Text>
+      <Text style={form.h1}>Welcome to Clocka</Text>
       <Text style={[form.hint, { textAlign: 'center', fontSize: 17 }]}>Who will use this phone?</Text>
       <Pressable style={styles.choice} onPress={() => onChoose('patient')}>
         <Text style={styles.choiceIcon}>🕰️</Text>

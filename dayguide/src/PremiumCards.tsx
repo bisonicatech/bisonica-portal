@@ -71,7 +71,7 @@ export function MessageCard({
       onUpdate(await sendMessage(code, message, minutes));
       setText('');
     } catch (e) {
-      setErr(e instanceof FamilyError && e.kind === 'premium_required' ? 'This needs DayGuide Premium.' : (e as Error).message);
+      setErr(e instanceof FamilyError && e.kind === 'premium_required' ? 'This needs Clocka Premium.' : (e as Error).message);
     } finally {
       setBusy(false);
     }

@@ -1,4 +1,8 @@
-# DayGuide
+# Clocka
+
+*(Formerly DayGuide. The folder, the internal app ID `com.bisonica.dayguide`,
+the Expo project and the saved-settings key keep the old name on purpose, so
+existing installs and the build command keep working.)*
 
 A phone app for people living with dementia. It shows the time, the part of the
 day, and one simple instruction for right now: "It's still night-time. Go back
@@ -46,7 +50,7 @@ settings to link the two phones. It is separate from the settings PIN.
 - **Shared daily schedule.** Carrie can edit David's times and messages from
   her phone ("Edit David's daily schedule") and sees what his screen says right
   now. Changes made on either phone show on both, within about 15 seconds
-  while DayGuide is open on David's phone.
+  while Clocka is open on David's phone.
 
 ![David's phone: normal, Out mode, check-in](docs/family-david.png)
 ![Carrie's phone: going out, Out mode on, missed check-in](docs/family-carrie.png)
@@ -68,9 +72,9 @@ household can be given Premium free for life in the SQL Editor:
 
 1. **App Store Connect → Business:** accept the Paid Apps Agreement and add
    bank and tax details.
-2. **App Store Connect → DayGuide → Subscriptions:** create a group
-   "DayGuide Premium" with two auto-renewable subscriptions:
-   `dayguide.premium.monthly` (£2.99) and `dayguide.premium.yearly` (£24.99),
+2. **App Store Connect → Clocka → Subscriptions:** create a group
+   "Clocka Premium" with two auto-renewable subscriptions:
+   `clocka.premium.monthly` (£2.99) and `clocka.premium.yearly` (£24.99),
    each with a 1-month free introductory offer.
 3. **RevenueCat (revenuecat.com):** create a project, add the iOS app
    (`com.bisonica.dayguide`) with an App Store Connect in-app purchase key,

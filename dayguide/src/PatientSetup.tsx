@@ -63,7 +63,7 @@ export default function PatientSetup({ settings, onDone, onBack }: Props) {
         <View style={[form.card, { marginTop: 12 }]}>
           <Text style={styles.h3}>Link to a family member's phone (optional)</Text>
           <Text style={form.hint}>
-            If a family member has DayGuide, they choose "A family member or carer" and get a 6-digit link code. Type it here. You can
+            If a family member has Clocka, they choose "A family member or carer" and get a 6-digit link code. Type it here. You can
             also do this later.
           </Text>
           <TextInput

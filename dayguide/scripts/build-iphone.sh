@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds the DayGuide iPhone app in Expo's cloud and uploads it to TestFlight.
+# Builds the Clocka iPhone app in Expo's cloud and uploads it to TestFlight.
 # Run on a Mac (Terminal) with:
 #   bash <(curl -fsSL https://raw.githubusercontent.com/bisonicatech/bisonica-portal/claude/dementia-time-awareness-app-uhkavx/dayguide/scripts/build-iphone.sh)
 set -e
@@ -9,7 +9,7 @@ DIR="$HOME/dayguide-build"
 
 say() { printf '\n\033[1;34m==> %s\033[0m\n' "$1"; }
 
-say "DayGuide: build the iPhone app and send it to TestFlight"
+say "Clocka: build the iPhone app and send it to TestFlight"
 
 if ! command -v node >/dev/null 2>&1; then
   echo "Node.js is needed first. Install the 'LTS' version from https://nodejs.org, then run this command again."

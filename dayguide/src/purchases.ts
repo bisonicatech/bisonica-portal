@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 import Purchases, { CustomerInfo, PACKAGE_TYPE, PurchasesPackage } from 'react-native-purchases';
 
-// DayGuide Premium is sold through the App Store and managed with RevenueCat.
+// Clocka Premium is sold through the App Store and managed with RevenueCat.
 // Without a RevenueCat key (web, tests, or before it's set up) purchases are unavailable.
 const IOS_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY;
 const ANDROID_KEY = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY;

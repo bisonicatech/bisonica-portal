@@ -34,7 +34,7 @@ export default function Paywall({ code, patient, onClose, onPremium }: Props) {
   }, [code]);
 
   const finish = async (until: Date | null) => {
-    if (!until) return setError('No active DayGuide Premium subscription was found.');
+    if (!until) return setError('No active Clocka Premium subscription was found.');
     onPremium(await setPremium(code, until));
   };
 
@@ -72,7 +72,7 @@ export default function Paywall({ code, patient, onClose, onPremium }: Props) {
       <Pressable onPress={onClose} hitSlop={12}>
         <Text style={[form.hint, { color: '#1f3b73', fontWeight: '600' }]}>‹ Back</Text>
       </Pressable>
-      <Text style={form.h1}>DayGuide Premium</Text>
+      <Text style={form.h1}>Clocka Premium</Text>
       <Text style={form.hint}>Everything in the free plan, plus more ways to help {patient}.</Text>
 
       {FEATURES.map(([icon, title, sub]) => (

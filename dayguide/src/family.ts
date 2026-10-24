@@ -79,7 +79,7 @@ async function rpc<T>(fn: string, args: Record<string, unknown>): Promise<T> {
     if (text.includes('link_code_not_found')) {
       throw new FamilyError("That link code isn't right or has run out. Get a new one on the family member's phone.", 'not_found');
     }
-    if (text.includes('premium_required')) throw new FamilyError('This needs DayGuide Premium.', 'premium_required');
+    if (text.includes('premium_required')) throw new FamilyError('This needs Clocka Premium.', 'premium_required');
     if (text.includes('member_limit')) {
       throw new FamilyError(
         'The free plan includes one family member. The main family member can upgrade to Premium to add more people.',

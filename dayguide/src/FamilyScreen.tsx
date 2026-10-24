@@ -119,7 +119,7 @@ export default function FamilyScreen({ settings, onSave, onChangeRole }: Props) 
       <Screen center>
         <Text style={form.h1}>Family link not set up</Text>
         <Text style={[form.hint, { textAlign: 'center' }]}>
-          This copy of DayGuide isn't connected to a server yet, so Out mode and check-ins aren't available. See the README.
+          This copy of Clocka isn't connected to a server yet, so Out mode and check-ins aren't available. See the README.
         </Text>
         <Button label="Change what this phone is for" onPress={onChangeRole} />
       </Screen>
@@ -284,7 +284,7 @@ function ScheduleScreen({
   return (
     <Screen>
       <Text style={form.h1}>{patient}'s daily schedule</Text>
-      <Text style={form.hint}>Changes show on {patient}'s phone within about 15 seconds while DayGuide is open on it.</Text>
+      <Text style={form.hint}>Changes show on {patient}'s phone within about 15 seconds while Clocka is open on it.</Text>
       {household.schedule === null && (
         <Text style={form.warn}>{patient}'s phone hasn't shared its schedule yet, so this starts from the standard one.</Text>
       )}
@@ -342,7 +342,7 @@ function LinkCard({ code, patient, startOpen }: { code: string; patient: string;
       <Text style={form.hint}>
         For {patient}'s phone: hold the clock time for 3 seconds, enter the 4-digit settings PIN, type this code at the top and tap
         Save.{'\n'}
-        For another family member: in DayGuide on their phone, choose "A family member or carer", then "I have a code", and type
+        For another family member: in Clocka on their phone, choose "A family member or carer", then "I have a code", and type
         this code.
       </Text>
       <Text style={[styles.code, expired && { color: '#aaa', textDecorationLine: 'line-through' }]} selectable>
@@ -536,7 +536,7 @@ function Setup({ settings, onSave, onChangeRole }: Props) {
         <>
           <Text style={form.label}>Your name</Text>
           <TextInput style={form.input} value={carer} onChangeText={setCarer} placeholder="e.g. Sarah" autoCapitalize="words" {...doneProps} />
-          <Text style={form.label}>6-digit link code from the main family member's DayGuide</Text>
+          <Text style={form.label}>6-digit link code from the main family member's Clocka</Text>
           <TextInput
             style={form.input}
             value={code}

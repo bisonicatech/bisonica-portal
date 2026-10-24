@@ -1,4 +1,4 @@
--- DayGuide family link: "Out" mode, check-ins and alerts between the
+-- Clocka family link: "Out" mode, check-ins and alerts between the
 -- cared-for person's phone and a family member's phone.
 --
 -- Phones never touch the table directly. They call the dg_* functions below
