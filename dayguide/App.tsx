@@ -1,27 +1,42 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { AppState, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
+import * as Notifications from 'expo-notifications';
 import ClockScreen from './src/ClockScreen';
 import SettingsScreen from './src/SettingsScreen';
-import { DEFAULT_SETTINGS, Settings, currentEntry } from './src/schedule';
+import FamilyScreen from './src/FamilyScreen';
+import WelcomeScreen from './src/WelcomeScreen';
+import { DEFAULT_SETTINGS, Role, Settings, currentEntry } from './src/schedule';
 import { loadSettings, saveSettings } from './src/storage';
-import { syncReminders } from './src/reminders';
+import { clearReminders, syncReminders } from './src/reminders';
+import { Household, checkIn, familyEnabled, getHousehold, registerForPush } from './src/family';
 
 export default function App() {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [loaded, setLoaded] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [household, setHousehold] = useState<Household | null>(null);
   const [isNight, setIsNight] = useState(false);
+
+  const isPatient = settings.role === 'patient';
+  const code = isPatient && familyEnabled ? settings.householdCode : '';
 
   useEffect(() => {
     loadSettings().then((s) => {
       setSettings(s);
       setLoaded(true);
-      syncReminders(s).catch(() => {});
     });
   }, []);
 
-  // Keep the screen on while the app is open during the day, but let it go dark at night.
+  // Daily reminders only belong on the cared-for person's phone.
+  useEffect(() => {
+    if (!loaded) return;
+    if (isPatient) syncReminders(settings).catch(() => {});
+    else clearReminders().catch(() => {});
+  }, [loaded, isPatient, settings]);
+
+  // Keep the screen on while the clock is open during the day, but let it go dark at night.
   useEffect(() => {
     const check = () => setIsNight(currentEntry(settings.entries, new Date())?.mode === 'night');
     check();
@@ -30,27 +45,92 @@ export default function App() {
   }, [settings]);
 
   useEffect(() => {
-    if (isNight) deactivateKeepAwake().catch(() => {});
-    else activateKeepAwakeAsync().catch(() => {});
-  }, [isNight]);
+    if (isPatient && !isNight) activateKeepAwakeAsync().catch(() => {});
+    else deactivateKeepAwake().catch(() => {});
+  }, [isPatient, isNight]);
 
-  const handleSave = async (s: Settings) => {
+  // Cared-for person's phone: follow Out mode and check-ins.
+  const refresh = useCallback(async () => {
+    if (!code) return setHousehold(null);
+    try {
+      setHousehold(await getHousehold(code));
+    } catch {
+      // Keep showing the last known state if the connection drops.
+    }
+  }, [code]);
+
+  const doCheckIn = useCallback(async () => {
+    if (!code) return;
+    try {
+      setHousehold(await checkIn(code));
+    } catch {
+      refresh();
+    }
+  }, [code, refresh]);
+
+  useEffect(() => {
+    if (!code) {
+      setHousehold(null);
+      return;
+    }
+    refresh();
+    registerForPush(code, 'patient').catch(() => {});
+    const t = setInterval(refresh, 30_000);
+    const sub = AppState.addEventListener('change', (s) => s === 'active' && refresh());
+    return () => {
+      clearInterval(t);
+      sub.remove();
+    };
+  }, [code, refresh]);
+
+  // Tapping the "Are you okay?" notification counts as "I'm okay".
+  useEffect(() => {
+    if (!code || Platform.OS === 'web') return;
+    const sub = Notifications.addNotificationResponseReceivedListener((r) => {
+      if (r.notification.request.content.data?.type === 'checkin') doCheckIn();
+    });
+    return () => sub.remove();
+  }, [code, doCheckIn]);
+
+  const save = async (s: Settings) => {
     setSettings(s);
     setShowSettings(false);
     await saveSettings(s);
-    await syncReminders(s).catch(() => {});
   };
+
+  const chooseRole = (role: Role | undefined) => save({ ...settings, role });
 
   if (!loaded) return null;
 
+  let screen;
+  if (!settings.role) {
+    screen = <WelcomeScreen onChoose={chooseRole} />;
+  } else if (settings.role === 'carer') {
+    screen = <FamilyScreen settings={settings} onSave={save} onChangeRole={() => chooseRole(undefined)} />;
+  } else if (showSettings) {
+    screen = (
+      <SettingsScreen
+        settings={settings}
+        onSave={save}
+        onClose={() => setShowSettings(false)}
+        onChangeRole={() => chooseRole(undefined)}
+      />
+    );
+  } else {
+    screen = (
+      <ClockScreen
+        settings={settings}
+        household={household}
+        onOpenSettings={() => setShowSettings(true)}
+        onCheckIn={doCheckIn}
+      />
+    );
+  }
+
   return (
     <>
-      <StatusBar hidden />
-      {showSettings ? (
-        <SettingsScreen settings={settings} onSave={handleSave} onClose={() => setShowSettings(false)} />
-      ) : (
-        <ClockScreen settings={settings} onOpenSettings={() => setShowSettings(true)} />
-      )}
+      <StatusBar hidden={isPatient && !showSettings} style="dark" />
+      {screen}
     </>
   );
 }

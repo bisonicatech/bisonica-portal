@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { Mode, Settings, currentEntry, fillName, periodLabel } from './schedule';
+import { Household, checkInDue, formatTime } from './family';
 
 const THEMES: Record<Mode, { bg: string; text: string; sub: string }> = {
   night: { bg: '#05070f', text: '#7f86a8', sub: '#4d5373' },
@@ -9,9 +10,14 @@ const THEMES: Record<Mode, { bg: string; text: string; sub: string }> = {
   evening: { bg: '#ffe2cf', text: '#4a1f00', sub: '#8a4a20' },
 };
 
-type Props = { settings: Settings; onOpenSettings: () => void };
+type Props = {
+  settings: Settings;
+  household: Household | null;
+  onOpenSettings: () => void;
+  onCheckIn: () => void;
+};
 
-export default function ClockScreen({ settings, onOpenSettings }: Props) {
+export default function ClockScreen({ settings, household, onOpenSettings, onCheckIn }: Props) {
   const [now, setNow] = useState(new Date());
   const { width } = useWindowDimensions();
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -24,10 +30,17 @@ export default function ClockScreen({ settings, onOpenSettings }: Props) {
   const entry = currentEntry(settings.entries, now);
   const mode: Mode = entry?.mode ?? 'day';
   const theme = THEMES[mode];
+  const isOut = !!household?.is_out;
+  const askOkay = checkInDue(household, now);
 
-  const time = now
-    .toLocaleTimeString('en-GB', { hour: 'numeric', minute: '2-digit', hour12: true })
-    .replace(/\s?(am|pm)/i, (m) => ' ' + m.trim().toLowerCase());
+  // While the family member is out, their message replaces the schedule.
+  const icon = isOut ? '🏡' : entry?.icon;
+  const message = isOut ? household!.out_message : entry ? fillName(entry.message, settings.name) : '';
+
+  const carerName = household?.carer_name || settings.carerName;
+  const carerPhone = household?.carer_phone || settings.carerPhone;
+
+  const time = formatTime(now);
   const day = now.toLocaleDateString('en-GB', { weekday: 'long' });
   const date = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
 
@@ -55,13 +68,28 @@ export default function ClockScreen({ settings, onOpenSettings }: Props) {
         {day} {date}
       </Text>
 
-      {entry && (
+      {!!message && (
         <View style={styles.messageBox}>
-          <Text style={{ fontSize: base * 0.18, opacity: mode === 'night' ? 0.5 : 1 }}>{entry.icon}</Text>
-          <Text style={[styles.message, { color: theme.text, fontSize: base * 0.085 }]}>
-            {fillName(entry.message, settings.name)}
-          </Text>
+          <Text style={{ fontSize: base * (askOkay ? 0.12 : 0.18), opacity: mode === 'night' ? 0.5 : 1 }}>{icon}</Text>
+          <Text style={[styles.message, { color: theme.text, fontSize: base * (askOkay ? 0.065 : 0.085) }]}>{message}</Text>
         </View>
+      )}
+
+      {askOkay && (
+        <Pressable onPress={onCheckIn} style={[styles.bigButton, styles.okay]} accessibilityRole="button">
+          <Text style={styles.bigButtonText}>I'm okay 👍</Text>
+          <Text style={styles.bigButtonSub}>Tap to tell {carerName}</Text>
+        </Pressable>
+      )}
+
+      {!!carerPhone && (mode !== 'night' || isOut) && (
+        <Pressable
+          onPress={() => Linking.openURL(`tel:${carerPhone.replace(/[^\d+]/g, '')}`)}
+          style={[styles.bigButton, styles.call]}
+          accessibilityRole="button"
+        >
+          <Text style={styles.bigButtonText}>📞 Call {carerName}</Text>
+        </Pressable>
       )}
     </View>
   );
@@ -73,6 +101,11 @@ const styles = StyleSheet.create({
   period: { fontWeight: '700', letterSpacing: 1, textAlign: 'center' },
   time: { fontWeight: '800', textAlign: 'center', marginVertical: 4 },
   date: { fontWeight: '500', textAlign: 'center' },
-  messageBox: { marginTop: 40, alignItems: 'center', maxWidth: 700 },
-  message: { fontWeight: '700', textAlign: 'center', marginTop: 12, lineHeight: undefined },
+  messageBox: { marginTop: 32, alignItems: 'center', maxWidth: 700 },
+  message: { fontWeight: '700', textAlign: 'center', marginTop: 12 },
+  bigButton: { marginTop: 24, borderRadius: 20, paddingVertical: 18, paddingHorizontal: 28, alignItems: 'center', minWidth: 260 },
+  okay: { backgroundColor: '#1e8e3e' },
+  call: { backgroundColor: '#1f3b73' },
+  bigButtonText: { color: '#fff', fontSize: 28, fontWeight: '800' },
+  bigButtonSub: { color: '#e6ffe9', fontSize: 17, marginTop: 4 },
 });

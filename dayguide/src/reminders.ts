@@ -55,3 +55,9 @@ export async function syncReminders(settings: Settings): Promise<boolean> {
   }
   return true;
 }
+
+/** Remove daily reminders, e.g. when this phone is a family member's phone. */
+export async function clearReminders() {
+  if (Platform.OS === 'web') return;
+  await Notifications.cancelAllScheduledNotificationsAsync();
+}

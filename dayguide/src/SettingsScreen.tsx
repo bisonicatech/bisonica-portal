@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { Entry, Mode, Settings, newId, parseTime, sortEntries } from './schedule';
+import { familyEnabled } from './family';
+import { Button, form } from './ui';
 
 type Props = {
   settings: Settings;
   onSave: (s: Settings) => void;
   onClose: () => void;
+  onChangeRole: () => void;
 };
 
 const MODES: { mode: Mode; label: string }[] = [
@@ -15,7 +18,7 @@ const MODES: { mode: Mode; label: string }[] = [
   { mode: 'night', label: 'Night (silent)' },
 ];
 
-export default function SettingsScreen({ settings, onSave, onClose }: Props) {
+export default function SettingsScreen({ settings, onSave, onClose, onChangeRole }: Props) {
   const [unlocked, setUnlocked] = useState(false);
   const [pinTry, setPinTry] = useState('');
   const [draft, setDraft] = useState<Settings>(settings);
@@ -71,8 +74,33 @@ export default function SettingsScreen({ settings, onSave, onClose }: Props) {
     <ScrollView style={styles.root} contentContainerStyle={{ paddingBottom: 60 }}>
       <Text style={styles.h1}>Family settings</Text>
 
-      <Text style={styles.label}>His name (used where a message says {'{name}'})</Text>
-      <TextInput style={styles.input} value={draft.name} onChangeText={(name) => setDraft({ ...draft, name })} placeholder="e.g. Dad" />
+      <Text style={styles.label}>Name of the person using this phone (used where a message says {'{name}'})</Text>
+      <TextInput style={styles.input} value={draft.name} onChangeText={(name) => setDraft({ ...draft, name })} placeholder="e.g. David" />
+
+      <Text style={styles.label}>Family member's name (for the Call button)</Text>
+      <TextInput style={styles.input} value={draft.carerName} onChangeText={(carerName) => setDraft({ ...draft, carerName })} placeholder="e.g. Carrie" />
+
+      <Text style={styles.label}>Family member's phone number</Text>
+      <TextInput
+        style={styles.input}
+        value={draft.carerPhone}
+        onChangeText={(carerPhone) => setDraft({ ...draft, carerPhone })}
+        keyboardType="phone-pad"
+        placeholder="Leave blank to hide the Call button"
+      />
+
+      {familyEnabled && (
+        <>
+          <Text style={styles.label}>Family code (from the family member's DayGuide app)</Text>
+          <TextInput
+            style={styles.input}
+            value={draft.householdCode}
+            onChangeText={(householdCode) => setDraft({ ...draft, householdCode: householdCode.trim().toUpperCase() })}
+            autoCapitalize="characters"
+            placeholder="e.g. 4A5891DA82"
+          />
+        </>
+      )}
 
       <Text style={styles.label}>Settings PIN</Text>
       <TextInput
@@ -129,41 +157,21 @@ export default function SettingsScreen({ settings, onSave, onClose }: Props) {
         <Button label="Cancel" onPress={onClose} />
         <Button label="Save" primary onPress={save} />
       </View>
+      <Pressable onPress={onChangeRole} style={{ marginTop: 32 }}>
+        <Text style={styles.hint}>Change what this phone is for…</Text>
+      </Pressable>
     </ScrollView>
   );
 }
 
-function Button({ label, onPress, primary }: { label: string; onPress: () => void; primary?: boolean }) {
-  return (
-    <Pressable onPress={onPress} style={[styles.button, primary && styles.buttonPrimary]}>
-      <Text style={[styles.buttonText, primary && { color: '#fff' }]}>{label}</Text>
-    </Pressable>
-  );
-}
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#f6f7f9', padding: 20, paddingTop: 60 },
-  center: { alignItems: 'center', justifyContent: 'center' },
-  h1: { fontSize: 26, fontWeight: '800', marginBottom: 12, color: '#111' },
-  h2: { fontSize: 20, fontWeight: '700', marginTop: 24, color: '#111' },
-  hint: { color: '#555', marginBottom: 12, marginTop: 4 },
-  label: { fontSize: 15, color: '#333', marginTop: 12, marginBottom: 4 },
-  input: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#ccd', borderRadius: 8, padding: 10, fontSize: 17, marginVertical: 4 },
+  ...form,
   pin: { width: 160, textAlign: 'center', fontSize: 24 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' },
-  card: { backgroundColor: '#fff', borderRadius: 12, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: '#e2e4ea' },
   time: { width: 90, textAlign: 'center' },
   icon: { width: 60, textAlign: 'center' },
   delete: { marginLeft: 'auto', padding: 8 },
   deleteText: { color: '#c0392b', fontWeight: '600' },
   modes: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginVertical: 6 },
-  chip: { borderWidth: 1, borderColor: '#99a', borderRadius: 16, paddingVertical: 6, paddingHorizontal: 12 },
-  chipOn: { backgroundColor: '#1f3b73', borderColor: '#1f3b73' },
-  chipText: { color: '#333' },
-  chipTextOn: { color: '#fff' },
   switchLabel: { fontSize: 15, color: '#333' },
-  button: { paddingVertical: 12, paddingHorizontal: 20, borderRadius: 10, backgroundColor: '#e3e6ee', marginTop: 8 },
-  buttonPrimary: { backgroundColor: '#1f3b73' },
-  buttonText: { fontSize: 17, fontWeight: '700', color: '#1f3b73' },
-  error: { color: '#c0392b', marginTop: 10, fontSize: 15 },
 });

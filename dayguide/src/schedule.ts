@@ -11,8 +11,19 @@ export type Entry = {
   sound: boolean;
 };
 
+export type Role = 'patient' | 'carer';
+
 export type Settings = {
+  /** What this phone is for. Unset until chosen on first launch. */
+  role?: Role;
+  /** The person being cared for. */
   name: string;
+  /** The family member who looks after them. */
+  carerName: string;
+  /** Used by the "Call" button on the clock screen. */
+  carerPhone: string;
+  /** Links this phone to the other one (see src/family.ts). */
+  householdCode: string;
   pin: string;
   entries: Entry[];
 };
@@ -21,7 +32,10 @@ let counter = 0;
 export const newId = () => `${Date.now().toString(36)}-${(counter++).toString(36)}`;
 
 export const DEFAULT_SETTINGS: Settings = {
-  name: '',
+  name: 'David',
+  carerName: 'Carrie',
+  carerPhone: '',
+  householdCode: '',
   pin: '1234',
   entries: [
     { id: 'e1', time: '07:00', mode: 'morning', sound: true, icon: '☀️', message: 'Good morning{name}! Time to get up and get dressed.' },
