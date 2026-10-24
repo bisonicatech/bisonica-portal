@@ -62,7 +62,7 @@ function clocka_defaults() {
 		'clocka_price_year'   => '£24.99',
 		'clocka_trial'        => '1 month',
 		'clocka_email'        => 'info@clocka.co.uk',
-		'clocka_privacy_url'  => 'https://clocka.co.uk/clocka_privacy_privacy.html',
+		'clocka_privacy_url'  => '', // empty = the theme's own /privacy/ page
 		'clocka_story'        => "Clocka started at 3 o'clock in the morning. My dad lives with dementia, and he would wake in the middle of the night, get dressed and start his day, while his wife was up with him, worn out. We wanted something simple that answered the question he kept asking: what should I be doing now?",
 		'clocka_story_name'   => 'Jason Nicholls, founder of Clocka',
 	);
@@ -71,7 +71,14 @@ function clocka_defaults() {
 /** A Customizer setting, falling back to the default. */
 function clocka_mod( $key ) {
 	$defaults = clocka_defaults();
-	return get_theme_mod( $key, isset( $defaults[ $key ] ) ? $defaults[ $key ] : '' );
+	$value    = get_theme_mod( $key, isset( $defaults[ $key ] ) ? $defaults[ $key ] : '' );
+	// Privacy policy: use the theme's own /privacy/ page unless another link is set.
+	// (An old .html link can't be a WordPress page, so it's ignored too.)
+	if ( 'clocka_privacy_url' === $key && ( ! $value || false !== strpos( $value, '.html' ) ) ) {
+		$page  = get_page_by_path( 'privacy' );
+		$value = $page ? get_permalink( $page ) : home_url( '/privacy/' );
+	}
+	return $value;
 }
 
 function clocka_customize_register( $wp_customize ) {
@@ -91,7 +98,7 @@ function clocka_customize_register( $wp_customize ) {
 		'clocka_price_year'   => array( __( 'Premium price per year', 'clocka' ), 'text' ),
 		'clocka_trial'        => array( __( 'Free trial length (e.g. 1 month)', 'clocka' ), 'text' ),
 		'clocka_email'        => array( __( 'Contact email', 'clocka' ), 'email' ),
-		'clocka_privacy_url'  => array( __( 'Privacy policy link', 'clocka' ), 'url' ),
+		'clocka_privacy_url'  => array( __( 'Privacy policy link (leave empty to use the built-in /privacy/ page)', 'clocka' ), 'url' ),
 		'clocka_story'        => array( __( 'Founder\'s story', 'clocka' ), 'textarea' ),
 		'clocka_story_name'   => array( __( 'Story signed by', 'clocka' ), 'text' ),
 	);
@@ -169,19 +176,25 @@ function clocka_support_url() {
 	return $page ? get_permalink( $page ) : home_url( '/support/' );
 }
 
-/** Create the Support page when the theme is activated, if there isn't one already. */
+/** Create the Support and Privacy pages when the theme is activated, if they don't exist yet. */
 function clocka_create_support_page() {
-	if ( get_page_by_path( 'support' ) ) {
-		return;
-	}
-	wp_insert_post(
-		array(
-			'post_title'   => __( 'Help and support', 'clocka' ),
-			'post_name'    => 'support',
-			'post_status'  => 'publish',
-			'post_type'    => 'page',
-			'post_content' => '',
-		)
+	$pages = array(
+		'support' => __( 'Help and support', 'clocka' ),
+		'privacy' => __( 'Privacy policy', 'clocka' ),
 	);
+	foreach ( $pages as $slug => $title ) {
+		if ( get_page_by_path( $slug ) ) {
+			continue;
+		}
+		wp_insert_post(
+			array(
+				'post_title'   => $title,
+				'post_name'    => $slug,
+				'post_status'  => 'publish',
+				'post_type'    => 'page',
+				'post_content' => '',
+			)
+		);
+	}
 }
 add_action( 'after_switch_theme', 'clocka_create_support_page' );

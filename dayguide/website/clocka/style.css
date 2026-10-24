@@ -188,3 +188,10 @@ p { margin: 0 0 1em; }
 .helpline p { color: var(--muted); font-size: 0.98rem; }
 .helpline-links { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; }
 @media (max-width: 700px) { .helplines { grid-template-columns: 1fr; } }
+
+/* Privacy policy page */
+.privacy-policy .summary { background: var(--sky); border: 1px solid var(--line); border-radius: 12px; padding: 4px 20px 10px; margin: 20px 0; }
+.privacy-policy table { border-collapse: collapse; width: 100%; font-size: 0.95rem; margin: 8px 0; }
+.privacy-policy th, .privacy-policy td { text-align: left; vertical-align: top; padding: 8px; border-bottom: 1px solid var(--line); }
+.privacy-policy th { color: var(--muted); }
+.privacy-policy .muted { color: var(--muted); }

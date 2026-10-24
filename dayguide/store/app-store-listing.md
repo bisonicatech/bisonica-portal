@@ -61,7 +61,7 @@ counts below were checked.
 >
 > Subscriptions renew automatically unless cancelled at least 24 hours before the end of the current period. Manage or cancel them in your Apple ID settings.
 > Terms of Use: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
-> Privacy policy: https://clocka.co.uk/clocka_privacy_privacy.html
+> Privacy policy: https://clocka.co.uk/privacy/
 
 **Keywords** (no spaces after commas)
 
@@ -83,7 +83,7 @@ dementia,alzheimers,day clock,memory,carer,reminder,routine,elderly,parent,calen
 
 ## App Privacy questionnaire
 
-Privacy Policy URL: `https://clocka.co.uk/clocka_privacy_privacy.html`
+Privacy Policy URL: `https://clocka.co.uk/privacy/`
 
 "Do you or your third-party partners collect data from this app?" → **Yes**
 

@@ -1,0 +1,107 @@
+<?php
+/**
+ * Privacy policy page. WordPress uses this automatically for the page whose
+ * address is /privacy/ (created when the theme is activated, or add a page
+ * with that address yourself). The policy text lives here so it always
+ * matches the app; anything typed into the page in the editor is ignored.
+ */
+get_header();
+?>
+<div class="page-content privacy-policy">
+	<h1><?php esc_html_e( 'Clocka privacy policy', 'clocka' ); ?></h1>
+
+<p class="muted">Last updated: 24 October 2026</p>
+
+<div class="summary">
+  <h2 style="margin-top:14px">The short version</h2>
+  <ul>
+    <li>Clocka keeps only what it needs to show the right message at the right time and to link a family's phones.</li>
+    <li>No adverts, no tracking, no location, and we never sell or share your information for marketing.</li>
+    <li>The family member who set Clocka up can delete everything at any time from inside the app.</li>
+    <li>Households that nobody has used for 12 months are deleted automatically.</li>
+  </ul>
+</div>
+
+<h2>1. Who we are</h2>
+<p>Clocka is a day clock and reminder app for people who need help keeping track of the time and their day, and for the families who support them. It is provided by Jason Nicholls, founder of Clocka, trading as Clocka in the United Kingdom ("we", "us"). We are the data controller for the information described here.</p>
+<p>Contact: <a href="mailto:info@clocka.co.uk">info@clocka.co.uk</a></p>
+
+<h2>2. What information Clocka uses</h2>
+<h3>Information you give us when setting up and using Clocka</h3>
+<ul>
+  <li>The first name of the person being cared for, and the first names of family members who use the app.</li>
+  <li>The main family member's phone number (for the "Call" button).</li>
+  <li>With Premium: names and phone numbers for extra call buttons, and one phone number or Apple ID email for the video call button.</li>
+  <li>The daily schedule: times, messages, pictures (emoji) and which days they apply to.</li>
+  <li>Out mode details: the message shown, the time you expect to be back, and how often to check in; and any one-off messages you send to the screen.</li>
+  <li>Check-in activity: when a check-in was due and when "I'm okay" was tapped.</li>
+</ul>
+<h3>Information created by the app</h3>
+<ul>
+  <li>A household code that links your family's phones, and short-lived 6-digit link codes (these expire after 15 minutes).</li>
+  <li>Notification tokens, so we can send reminders, check-in prompts and alerts to the right phones.</li>
+  <li>When the cared-for person's phone last connected, so the family can see it is working.</li>
+  <li>Whether the household has Premium and when it ends. Payments are handled by Apple; we never see card or bank details.</li>
+</ul>
+<h3>Information that stays on the phone only</h3>
+<ul>
+  <li>The 4-digit settings PIN, and the phone's own copy of the settings and schedule.</li>
+</ul>
+<h3>What we do not collect</h3>
+<p>Clocka does not collect location, your phone's contacts or photos, microphone or camera recordings, advertising identifiers, or analytics about how you use the app.</p>
+
+<h2>3. Health-related information</h2>
+<p>Using Clocka, and some schedule or Out mode messages, may suggest that someone needs support with memory or daily living. Under UK data protection law this can count as health information, which is given extra protection. We use it only to provide Clocka to your family, we keep it to a minimum, and we never use it for marketing or profiling.</p>
+<p>Please only add information that is needed for the reminders, and set Clocka up with the agreement of the person being cared for, or where you are acting in their best interests (for example as their carer or under a Lasting Power of Attorney).</p>
+
+<h2>4. How we use the information, and our legal reasons</h2>
+<table>
+  <tr><th>What we do</th><th>Legal basis (UK GDPR)</th></tr>
+  <tr><td>Show the right message on the clock, keep linked phones in step, and let family members edit the schedule</td><td>Providing the service you asked for (contract). For health-related information, your explicit consent, given when you set Clocka up and choose what to add.</td></tr>
+  <tr><td>Send reminders, check-in prompts and missed check-in alerts</td><td>Providing the service (contract) and explicit consent, as above.</td></tr>
+  <tr><td>Manage Premium subscriptions</td><td>Providing the service (contract).</td></tr>
+  <tr><td>Keep Clocka secure, prevent misuse, and delete households that are no longer used</td><td>Our legitimate interests in running a safe, reliable service.</td></tr>
+</table>
+<p>You can withdraw consent at any time by deleting your data in the app (see section 7). This doesn't affect anything we did before you withdrew it.</p>
+
+<h2>5. Who else handles the information</h2>
+<p>We use a small number of trusted service providers who process information only on our instructions:</p>
+<table>
+  <tr><th>Provider</th><th>What for</th><th>Where</th></tr>
+  <tr><td>Supabase</td><td>Secure database that stores household information</td><td>London, United Kingdom</td></tr>
+  <tr><td>Expo (650 Industries)</td><td>Delivering notifications</td><td>United States</td></tr>
+  <tr><td>Apple</td><td>Delivering notifications to iPhones, and App Store payments</td><td>Worldwide</td></tr>
+  <tr><td>RevenueCat</td><td>Managing Premium subscriptions. It receives an anonymous household identifier and App Store purchase information, not names or schedules.</td><td>United States</td></tr>
+</table>
+<p>Where information is handled outside the UK, we rely on the safeguards UK law requires, such as the UK International Data Transfer Agreement or Addendum, or the UK–US Data Bridge.</p>
+<p>We never sell your information. We would only share it with others if the law required us to.</p>
+
+<h2>6. How long we keep it</h2>
+<ul>
+  <li>Household information is kept while your family uses Clocka.</li>
+  <li>It is deleted straight away when the family member who set Clocka up chooses "Delete all … Clocka data" in the app.</li>
+  <li>Households that no phone has used for 12 months are deleted automatically.</li>
+  <li>6-digit link codes expire after 15 minutes.</li>
+  <li>Our database provider may keep short-term backups for disaster recovery. These are deleted automatically on its schedule, typically within 7 days.</li>
+</ul>
+
+<h2>7. Your rights and how to delete your data</h2>
+<p>You have the right to see the information we hold, have it corrected or deleted, restrict or object to how we use it, and receive a copy.</p>
+<ul>
+  <li><strong>Delete everything:</strong> on the main family member's phone, open Clocka and choose <em>Privacy and your data › Delete all of … Clocka data</em>. This removes the household from our servers. Deleting data does not cancel a Premium subscription: cancel that in the iPhone's Settings › your name › Subscriptions.</li>
+  <li><strong>Remove Clocka from one phone:</strong> choose <em>Remove Clocka from this phone</em> (family phones), or <em>Remove Clocka from this phone</em> in the cared-for phone's settings.</li>
+  <li><strong>Anything else:</strong> email <a href="mailto:info@clocka.co.uk">info@clocka.co.uk</a>. We reply within one month.</li>
+</ul>
+<p>If you are unhappy with how we handle your information, you can complain to the Information Commissioner's Office: <a href="https://ico.org.uk/make-a-complaint/">ico.org.uk/make-a-complaint</a>, 0303 123 1113.</p>
+
+<h2>8. Keeping information safe</h2>
+<p>Information is encrypted in transit between your phones and our servers. Our database can only be reached through Clocka's own functions, which require your household's code; it cannot be browsed. We only keep what Clocka needs.</p>
+
+<h2>9. Children</h2>
+<p>Clocka is meant to be set up by adults. We do not knowingly collect information from children under 13.</p>
+
+<h2>10. Changes to this policy</h2>
+<p>If we change this policy we will update the date at the top, and tell you in the app if the change is significant.</p>
+</div>
+<?php
+get_footer();

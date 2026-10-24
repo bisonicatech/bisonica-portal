@@ -29,6 +29,12 @@ Support page: activating the theme creates a "Help and support" page at
 Anything you type into that page in the editor appears under the contact box.
 Use https://clocka.co.uk/support/ as the Support URL in App Store Connect.
 
+Privacy page: activating the theme also creates a "Privacy policy" page at
+/privacy/, which shows Clocka's privacy policy automatically. If the theme
+was already active, add a page with the address (slug) "privacy" yourself.
+Use https://clocka.co.uk/privacy/ as the Privacy Policy URL in App Store
+Connect.
+
 Appearance > Menus: an optional "Footer links" menu adds extra links in the footer.
 
 == Store badges ==
