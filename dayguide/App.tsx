@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -11,7 +11,7 @@ import WelcomeScreen from './src/WelcomeScreen';
 import { DEFAULT_SETTINGS, Role, Settings, currentEntry } from './src/schedule';
 import { loadSettings, saveSettings } from './src/storage';
 import { clearReminders, syncReminders } from './src/reminders';
-import { Household, checkIn, familyEnabled, getHouseholdAsPatient, registerForPush } from './src/family';
+import { Household, checkIn, familyEnabled, getHouseholdAsPatient, registerForPush, setSchedule } from './src/family';
 
 export default function App() {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
@@ -19,6 +19,16 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [household, setHousehold] = useState<Household | null>(null);
   const [isNight, setIsNight] = useState(false);
+
+  // Latest settings for async work that outlives a render.
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
+
+  const persist = useCallback(async (s: Settings) => {
+    settingsRef.current = s;
+    setSettings(s);
+    await saveSettings(s);
+  }, []);
 
   const isPatient = settings.role === 'patient';
   const code = isPatient && familyEnabled ? settings.householdCode : '';
@@ -50,15 +60,27 @@ export default function App() {
     else deactivateKeepAwake().catch(() => {});
   }, [isPatient, isNight]);
 
-  // Cared-for person's phone: follow Out mode and check-ins.
+  // Cared-for person's phone: follow Out mode, check-ins and the shared schedule.
   const refresh = useCallback(async () => {
     if (!code) return setHousehold(null);
     try {
-      setHousehold(await getHouseholdAsPatient(code));
+      const h = await getHouseholdAsPatient(code);
+      setHousehold(h);
+      if (h.schedule === undefined) return; // server doesn't share schedules yet
+      const s = settingsRef.current;
+      if (s.schedulePending || h.schedule === null) {
+        // Send this phone's schedule: an edit made here, or nothing shared yet.
+        const saved = await setSchedule(code, s.entries);
+        setHousehold(saved);
+        await persist({ ...settingsRef.current, schedulePending: false, scheduleUpdatedAt: saved.schedule_updated_at ?? undefined });
+      } else if (h.schedule_updated_at && h.schedule_updated_at !== s.scheduleUpdatedAt) {
+        // The family member changed the schedule: use theirs.
+        await persist({ ...s, entries: h.schedule, scheduleUpdatedAt: h.schedule_updated_at });
+      }
     } catch {
-      // Keep showing the last known state if the connection drops.
+      // Keep showing the last known state if the connection drops; try again next time.
     }
-  }, [code]);
+  }, [code, persist]);
 
   const doCheckIn = useCallback(async () => {
     if (!code) return;
@@ -94,9 +116,12 @@ export default function App() {
   }, [code, doCheckIn]);
 
   const save = async (s: Settings) => {
-    setSettings(s);
+    const scheduleChanged = JSON.stringify(s.entries) !== JSON.stringify(settings.entries);
+    const next = s.role === 'patient' && s.householdCode && scheduleChanged ? { ...s, schedulePending: true } : s;
     setShowSettings(false);
-    await saveSettings(s);
+    await persist(next);
+    // Send a schedule edit straight away (if the code changed, the refresh effect does it).
+    if (next.schedulePending && next.householdCode === settings.householdCode) refresh();
   };
 
   const chooseRole = (role: Role | undefined) => save({ ...settings, role });

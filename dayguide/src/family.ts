@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
+import type { Entry } from './schedule';
 
 // Links the cared-for person's phone with a family member's phone through
 // Supabase (see supabase/migrations). Without these two values the app works
@@ -25,6 +26,9 @@ export type Household = {
   last_checkin_at: string | null;
   /** Last time the cared-for person's phone connected. Missing if 0002_patient_seen.sql hasn't been run. */
   patient_seen_at?: string | null;
+  /** Shared daily schedule. null = never shared yet; missing = server needs 0004_shared_schedule.sql. */
+  schedule?: Entry[] | null;
+  schedule_updated_at?: string | null;
 };
 
 export class FamilyError extends Error {
@@ -84,6 +88,10 @@ export const newLinkCode = (code: string) =>
 
 /** Cared-for person's phone: swap a 6-digit link code for the household. */
 export const redeemLinkCode = (linkCode: string) => rpc<Household>('dg_use_link_code', { p_link_code: linkCode });
+
+/** Either phone: replace the shared daily schedule. */
+export const setSchedule = (code: string, entries: Entry[]) =>
+  rpc<Household>('dg_set_schedule', { p_code: code, p_schedule: entries });
 
 export const updateHousehold = (code: string, patientName: string, carerName: string, carerPhone: string) =>
   rpc<Household>('dg_update_household', { p_code: code, p_patient_name: patientName, p_carer_name: carerName, p_carer_phone: carerPhone });

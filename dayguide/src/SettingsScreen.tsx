@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
-import { Entry, Mode, Settings, newId, parseTime, sortEntries } from './schedule';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Settings, scheduleError, sortEntries } from './schedule';
+import ScheduleEditor from './ScheduleEditor';
 import { Household, familyEnabled, getHousehold, redeemLinkCode } from './family';
 import { Button, Screen, doneProps, form } from './ui';
 
@@ -12,13 +13,6 @@ type Props = {
   onClose: () => void;
   onChangeRole: () => void;
 };
-
-const MODES: { mode: Mode; label: string }[] = [
-  { mode: 'morning', label: 'Morning' },
-  { mode: 'day', label: 'Day' },
-  { mode: 'evening', label: 'Evening' },
-  { mode: 'night', label: 'Night (silent)' },
-];
 
 export default function SettingsScreen({ settings, household, onSave, onClose, onChangeRole }: Props) {
   const [unlocked, setUnlocked] = useState(false);
@@ -61,20 +55,9 @@ export default function SettingsScreen({ settings, household, onSave, onClose, o
   const linked = !!household && household.code === settings.householdCode && !!settings.householdCode;
   const carer = household?.carer_name || draft.carerName || 'the family member';
 
-  const update = (id: string, patch: Partial<Entry>) =>
-    setDraft((d) => ({ ...d, entries: d.entries.map((e) => (e.id === id ? { ...e, ...patch } : e)) }));
-
-  const remove = (id: string) => setDraft((d) => ({ ...d, entries: d.entries.filter((e) => e.id !== id) }));
-
-  const add = () =>
-    setDraft((d) => ({
-      ...d,
-      entries: [...d.entries, { id: newId(), time: '12:00', mode: 'day', sound: true, icon: '🙂', message: '' }],
-    }));
-
   const save = async () => {
-    const bad = draft.entries.find((e) => parseTime(e.time) === null);
-    if (bad) return setError(`"${bad.time}" isn't a valid time. Use 24-hour HH:MM, e.g. 07:30 or 21:00.`);
+    const bad = scheduleError(draft.entries);
+    if (bad) return setError(bad);
     if (!/^\d{4}$/.test(draft.pin)) return setError('The PIN must be exactly 4 digits.');
     let next = { ...draft, entries: sortEntries(draft.entries) };
 
@@ -170,48 +153,8 @@ export default function SettingsScreen({ settings, household, onSave, onClose, o
       />
 
       <Text style={styles.h2}>Daily schedule</Text>
-      <Text style={styles.hint}>
-        Each message shows from its time until the next one. Night messages never make a sound.
-      </Text>
-
-      {draft.entries.map((e) => (
-        <View key={e.id} style={styles.card}>
-          <View style={styles.row}>
-            <TextInput style={[styles.input, styles.time]} value={e.time} onChangeText={(time) => update(e.id, { time })} placeholder="07:00" {...doneProps} />
-            <TextInput style={[styles.input, styles.icon]} value={e.icon} onChangeText={(icon) => update(e.id, { icon })} {...doneProps} />
-            <Pressable onPress={() => remove(e.id)} style={styles.delete}>
-              <Text style={styles.deleteText}>Delete</Text>
-            </Pressable>
-          </View>
-          <TextInput
-            style={[styles.input, { minHeight: 60 }]}
-            value={e.message}
-            onChangeText={(message) => update(e.id, { message })}
-            multiline
-            placeholder="What should he do now?"
-            {...doneProps}
-          />
-          <View style={styles.modes}>
-            {MODES.map((m) => (
-              <Pressable
-                key={m.mode}
-                onPress={() => update(e.id, { mode: m.mode })}
-                style={[styles.chip, e.mode === m.mode && styles.chipOn]}
-              >
-                <Text style={[styles.chipText, e.mode === m.mode && styles.chipTextOn]}>{m.label}</Text>
-              </Pressable>
-            ))}
-          </View>
-          {e.mode !== 'night' && (
-            <View style={styles.row}>
-              <Switch value={e.sound} onValueChange={(sound) => update(e.id, { sound })} />
-              <Text style={styles.switchLabel}>Reminder sound at this time</Text>
-            </View>
-          )}
-        </View>
-      ))}
-
-      <Button label="+ Add a time" onPress={add} />
+      {linked && <Text style={styles.hint}>Shared with {carer}'s phone. Changes made on either phone show on both.</Text>}
+      <ScheduleEditor entries={draft.entries} onChange={(entries) => setDraft((d) => ({ ...d, entries }))} />
       {!!error && <Text style={styles.error}>{error}</Text>}
       <View style={{ marginTop: 12 }}>{saveRow}</View>
       <Pressable onPress={onChangeRole} style={{ marginTop: 32 }}>
@@ -227,10 +170,4 @@ const styles = StyleSheet.create({
   pin: { width: 140, textAlign: 'center', fontSize: 26, letterSpacing: 8 },
   code: { fontSize: 28, letterSpacing: 6, textAlign: 'center' },
   h3: { fontSize: 18, fontWeight: '700', color: '#111' },
-  time: { width: 90, textAlign: 'center' },
-  icon: { width: 60, textAlign: 'center' },
-  delete: { marginLeft: 'auto', padding: 8 },
-  deleteText: { color: '#c0392b', fontWeight: '600' },
-  modes: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginVertical: 6 },
-  switchLabel: { fontSize: 15, color: '#333' },
 });

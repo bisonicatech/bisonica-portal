@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AppState, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { Settings } from './schedule';
+import { DEFAULT_SETTINGS, Entry, Settings, currentEntry, fillName, scheduleError, sortEntries } from './schedule';
+import ScheduleEditor from './ScheduleEditor';
 import {
   FamilyError,
   Household,
@@ -11,6 +12,7 @@ import {
   getHousehold,
   newLinkCode,
   registerForPush,
+  setSchedule,
   startOut,
 } from './family';
 import { Button, Screen, doneProps, form } from './ui';
@@ -58,6 +60,7 @@ export default function FamilyScreen({ settings, onSave, onChangeRole }: Props) 
   const [household, setHousehold] = useState<Household | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [editingSchedule, setEditingSchedule] = useState(false);
 
   const refresh = useCallback(async () => {
     if (!code) return;
@@ -110,6 +113,21 @@ export default function FamilyScreen({ settings, onSave, onChangeRole }: Props) 
   const patient = household?.patient_name || settings.name;
   const carer = household?.carer_name || settings.carerName;
 
+  if (editingSchedule && household) {
+    return (
+      <ScheduleScreen
+        code={code}
+        household={household}
+        patient={patient}
+        onClose={() => setEditingSchedule(false)}
+        onSaved={(h) => {
+          setHousehold(h);
+          setEditingSchedule(false);
+        }}
+      />
+    );
+  }
+
   return (
     <Screen>
       <Text style={form.h1}>{patient}</Text>
@@ -121,8 +139,17 @@ export default function FamilyScreen({ settings, onSave, onChangeRole }: Props) 
       ) : household.is_out ? (
         <OutStatus household={household} patient={patient} busy={busy} onHome={() => run(() => endOut(code))} />
       ) : (
-        <GoOut carer={carer} patient={patient} busy={busy} onStart={(back, msg, every) => run(() => startOut(code, back, msg, every))} />
+        <>
+          <NowShowing household={household} patient={patient} />
+          {household.schedule !== undefined && (
+            <Pressable onPress={() => setEditingSchedule(true)} style={[styles.big, { backgroundColor: '#5b3fa0', marginTop: 0, marginBottom: 8 }]}>
+              <Text style={styles.bigText}>📅 Edit {patient}'s daily schedule</Text>
+            </Pressable>
+          )}
+          <GoOut carer={carer} patient={patient} busy={busy} onStart={(back, msg, every) => run(() => startOut(code, back, msg, every))} />
+        </>
       )}
+
 
       {!!error && !!household && <Text style={form.error}>{error}</Text>}
 
@@ -130,6 +157,76 @@ export default function FamilyScreen({ settings, onSave, onChangeRole }: Props) 
       <Pressable onPress={onChangeRole} style={{ marginTop: 24 }}>
         <Text style={form.hint}>Change what this phone is for…</Text>
       </Pressable>
+    </Screen>
+  );
+}
+
+/** What the cared-for person's screen is showing right now (from the shared schedule). */
+function NowShowing({ household: h, patient }: { household: Household; patient: string }) {
+  if (!h.schedule) return null;
+  const entry = currentEntry(h.schedule, new Date());
+  if (!entry) return null;
+  return (
+    <View style={form.card}>
+      <Text style={form.hint}>Right now {patient}'s screen says:</Text>
+      <Text style={styles.quote}>
+        {entry.icon} “{fillName(entry.message, h.patient_name)}”
+      </Text>
+    </View>
+  );
+}
+
+/** Edit the cared-for person's daily schedule from the family member's phone. */
+function ScheduleScreen({
+  code,
+  household,
+  patient,
+  onClose,
+  onSaved,
+}: {
+  code: string;
+  household: Household;
+  patient: string;
+  onClose: () => void;
+  onSaved: (h: Household) => void;
+}) {
+  const [entries, setEntries] = useState<Entry[]>(() => household.schedule ?? DEFAULT_SETTINGS.entries);
+  const [err, setErr] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
+    const bad = scheduleError(entries);
+    if (bad) return setErr(bad);
+    setSaving(true);
+    try {
+      onSaved(await setSchedule(code, sortEntries(entries)));
+    } catch (e) {
+      setErr(e instanceof FamilyError && e.kind === 'missing_function' ? 'The server needs updating first (0004_shared_schedule.sql).' : (e as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const buttons = (
+    <View style={form.row}>
+      <Button label="Cancel" onPress={onClose} />
+      <Button label={saving ? 'Saving…' : 'Save'} primary disabled={saving} onPress={save} />
+    </View>
+  );
+
+  return (
+    <Screen>
+      <Text style={form.h1}>{patient}'s daily schedule</Text>
+      <Text style={form.hint}>Changes show on {patient}'s phone within about 15 seconds while DayGuide is open on it.</Text>
+      {household.schedule === null && (
+        <Text style={form.warn}>{patient}'s phone hasn't shared its schedule yet, so this starts from the standard one.</Text>
+      )}
+      {buttons}
+      {!!err && <Text style={form.error}>{err}</Text>}
+      <View style={{ height: 12 }} />
+      <ScheduleEditor entries={entries} onChange={setEntries} />
+      {!!err && <Text style={form.error}>{err}</Text>}
+      <View style={{ marginTop: 12 }}>{buttons}</View>
     </Screen>
   );
 }

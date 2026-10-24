@@ -26,6 +26,10 @@ export type Settings = {
   householdCode: string;
   pin: string;
   entries: Entry[];
+  /** Server time of the shared schedule this phone last saw (cared-for phone only). */
+  scheduleUpdatedAt?: string;
+  /** A schedule edit made on this phone that hasn't reached the server yet. */
+  schedulePending?: boolean;
 };
 
 let counter = 0;
@@ -85,3 +89,10 @@ export function periodLabel(now: Date, mode: Mode | undefined): string {
 
 export const fillName = (message: string, name: string) =>
   message.replace(/\{name\}/g, name.trim() ? `, ${name.trim()}` : '');
+
+/** A message explaining what's wrong with a schedule, or null if it's fine. */
+export function scheduleError(entries: Entry[]): string | null {
+  const bad = entries.find((e) => parseTime(e.time) === null);
+  if (bad) return `"${bad.time}" isn't a valid time. Use 24-hour HH:MM, e.g. 07:30 or 21:00.`;
+  return null;
+}

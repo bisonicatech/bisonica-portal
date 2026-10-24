@@ -15,7 +15,7 @@ export default function WelcomeScreen({ onChoose }: { onChoose: (role: Role) => 
       <Pressable style={styles.choice} onPress={() => onChoose('carer')}>
         <Text style={styles.choiceIcon}>👪</Text>
         <Text style={styles.choiceTitle}>A family member or carer</Text>
-        <Text style={styles.choiceText}>Turn on Out mode and get check-in alerts.</Text>
+        <Text style={styles.choiceText}>Edit the daily schedule, turn on Out mode and get check-in alerts.</Text>
       </Pressable>
     </Screen>
   );

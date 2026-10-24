@@ -41,6 +41,10 @@ settings to link the two phones. It is separate from the settings PIN.
 - **Missed check-in alert.** If he hasn't tapped within 15 minutes, Carrie gets
   an alert so she can call.
 - **I'm home.** One tap ends Out mode and David's normal schedule returns.
+- **Shared daily schedule.** Carrie can edit David's times and messages from
+  her phone ("Edit David's daily schedule") and sees what his screen says right
+  now. Changes made on either phone show on both, within about 15 seconds
+  while DayGuide is open on David's phone.
 
 ![David's phone: normal, Out mode, check-in](docs/family-david.png)
 ![Carrie's phone: going out, Out mode on, missed check-in](docs/family-carrie.png)
@@ -57,7 +61,9 @@ on its own; the family features are just hidden.
    then [`0002_patient_seen.sql`](supabase/migrations/0002_patient_seen.sql)
    (lets the family member see whether the cared-for phone is connected) and
    [`0003_link_codes.sql`](supabase/migrations/0003_link_codes.sql)
-   (6-digit link codes).
+   (6-digit link codes) and
+   [`0004_shared_schedule.sql`](supabase/migrations/0004_shared_schedule.sql)
+   (schedule editing from the family member's phone).
 3. Put the project URL and the anon or publishable key (from **Project
    Settings → API Keys**) in `eas.json` for app builds, and in `.env` (copy
    `.env.example`) for running locally. Both are public values that ship
@@ -82,7 +88,6 @@ For real use, build an installable app with EAS:
 
 - Lock-screen / home-screen widget, so the message is visible without opening
   the app (needs native widget code per platform).
-- Editing David's daily schedule from Carrie's phone.
 - Alerts to more than one family member (today only the most recent family
   phone to open the app gets them).
 - Quiet alert to a carer's phone when he's using the phone at night.
