@@ -175,3 +175,16 @@ p { margin: 0 0 1em; }
 .page-content h1 { font-size: 2.2rem; }
 .page-content h2 { font-size: 1.5rem; margin-top: 1.6em; }
 .post-list article { padding: 24px 0; border-bottom: 1px solid var(--line); }
+
+/* Support page */
+.support .support-box { background: var(--cream); border: 1px solid #f0dea4; border-radius: var(--radius); padding: 22px 24px; margin: 26px 0; }
+.support .support-box h2 { margin-top: 0; }
+.support .support-box--urgent { background: #fff3f2; border-color: #f3c1bc; }
+.support .small { font-size: 0.95rem; color: var(--muted); margin: 0; }
+.support .faq { margin-left: 0; }
+.helplines { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+.helpline { border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; }
+.helpline h3 { margin-bottom: 4px; }
+.helpline p { color: var(--muted); font-size: 0.98rem; }
+.helpline-links { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; }
+@media (max-width: 700px) { .helplines { grid-template-columns: 1fr; } }

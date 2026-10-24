@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Settings, scheduleError, sortEntries } from './schedule';
 import ScheduleEditor from './ScheduleEditor';
 import { DataCard, PrivacyScreen } from './PrivacyData';
+import { HelpLink, HelpScreen } from './HelpSupport';
 import { Household, familyEnabled, getHousehold, hasPremium, redeemLinkCode } from './family';
 import { Button, Screen, doneProps, form } from './ui';
 
@@ -25,8 +26,10 @@ export default function SettingsScreen({ settings, household, onSave, onClose, o
   const [saving, setSaving] = useState(false);
   const [linkInput, setLinkInput] = useState('');
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   if (showPrivacy) return <PrivacyScreen onClose={() => setShowPrivacy(false)} />;
+  if (showHelp) return <HelpScreen onClose={() => setShowHelp(false)} />;
 
   if (!unlocked) {
     // A PIN saved by an older version may be longer than 4 digits.
@@ -167,6 +170,7 @@ export default function SettingsScreen({ settings, household, onSave, onClose, o
       />
       {!!error && <Text style={styles.error}>{error}</Text>}
       <View style={{ marginTop: 12 }}>{saveRow}</View>
+      <HelpLink onOpen={() => setShowHelp(true)} />
       <DataCard
         patient={draft.name || 'this person'}
         canDeleteAll={false}

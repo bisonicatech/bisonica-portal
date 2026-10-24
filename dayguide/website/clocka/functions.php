@@ -56,6 +56,7 @@ add_action( 'wp_head', 'clocka_meta_description', 1 );
 function clocka_defaults() {
 	return array(
 		'clocka_appstore_url' => '',
+		'clocka_testflight_url' => '',
 		'clocka_play_url'     => '',
 		'clocka_price_month'  => '£2.99',
 		'clocka_price_year'   => '£24.99',
@@ -78,12 +79,13 @@ function clocka_customize_register( $wp_customize ) {
 		'clocka',
 		array(
 			'title'       => __( 'Clocka', 'clocka' ),
-			'description' => __( 'Store links, prices and the founder\'s story. Leave a store link empty to show "Coming soon".', 'clocka' ),
+			'description' => __( 'Store links, prices and the founder\'s story. App Store link: in App Store Connect open your app > App Information and copy the Apple ID (a long number). Your link is https://apps.apple.com/gb/app/clocka/id followed by that number; it starts working when Apple publishes the app. Until then you can paste a TestFlight public link to let people try the beta. Leave a link empty to show "Coming soon".', 'clocka' ),
 			'priority'    => 30,
 		)
 	);
 	$fields = array(
 		'clocka_appstore_url' => array( __( 'App Store link (iPhone)', 'clocka' ), 'url' ),
+		'clocka_testflight_url' => array( __( 'TestFlight beta link (used until the App Store link is added)', 'clocka' ), 'url' ),
 		'clocka_play_url'     => array( __( 'Google Play link (Android)', 'clocka' ), 'url' ),
 		'clocka_price_month'  => array( __( 'Premium price per month', 'clocka' ), 'text' ),
 		'clocka_price_year'   => array( __( 'Premium price per year', 'clocka' ), 'text' ),
@@ -117,8 +119,15 @@ add_action( 'customize_register', 'clocka_customize_register' );
 
 /** The App Store and Google Play buttons. A missing link shows "Coming soon". */
 function clocka_store_buttons( $style = '' ) {
+	$ios       = clocka_mod( 'clocka_appstore_url' );
+	$ios_label = __( 'Download for', 'clocka' );
+	if ( ! $ios && clocka_mod( 'clocka_testflight_url' ) ) {
+		// Before the App Store launch: send iPhone users to the TestFlight beta.
+		$ios       = clocka_mod( 'clocka_testflight_url' );
+		$ios_label = __( 'Try the beta on', 'clocka' );
+	}
 	$stores = array(
-		array( clocka_mod( 'clocka_appstore_url' ), __( 'Download for', 'clocka' ), __( 'iPhone', 'clocka' ) ),
+		array( $ios, $ios_label, __( 'iPhone', 'clocka' ) ),
 		array( clocka_mod( 'clocka_play_url' ), __( 'Get it for', 'clocka' ), __( 'Android', 'clocka' ) ),
 	);
 	echo '<div class="store-buttons">';
@@ -142,3 +151,37 @@ function clocka_store_buttons( $style = '' ) {
 	}
 	echo '</div>';
 }
+
+/** UK organisations shown on the Support page (numbers and websites only; opening hours change). */
+function clocka_helplines() {
+	return array(
+		array( "Alzheimer's Society", __( 'Dementia Support Line: information, advice and emotional support for anyone affected by dementia.', 'clocka' ), '0333 150 3456', 'https://www.alzheimers.org.uk' ),
+		array( 'Dementia UK', __( 'Admiral Nurse Dementia Helpline: free advice from specialist dementia nurses.', 'clocka' ), '0800 888 6678', 'https://www.dementiauk.org' ),
+		array( 'Carers UK', __( 'Advice and support for the person doing the caring.', 'clocka' ), '0808 808 7777', 'https://www.carersuk.org' ),
+		array( 'Age UK', __( 'Advice Line for older people and their families: care, money and practical help.', 'clocka' ), '0800 678 1602', 'https://www.ageuk.org.uk' ),
+		array( 'NHS', __( 'Living with dementia, getting a diagnosis, and care and support.', 'clocka' ), '', 'https://www.nhs.uk/conditions/dementia/' ),
+	);
+}
+
+/** Address of the Support page. */
+function clocka_support_url() {
+	$page = get_page_by_path( 'support' );
+	return $page ? get_permalink( $page ) : home_url( '/support/' );
+}
+
+/** Create the Support page when the theme is activated, if there isn't one already. */
+function clocka_create_support_page() {
+	if ( get_page_by_path( 'support' ) ) {
+		return;
+	}
+	wp_insert_post(
+		array(
+			'post_title'   => __( 'Help and support', 'clocka' ),
+			'post_name'    => 'support',
+			'post_status'  => 'publish',
+			'post_type'    => 'page',
+			'post_content' => '',
+		)
+	);
+}
+add_action( 'after_switch_theme', 'clocka_create_support_page' );

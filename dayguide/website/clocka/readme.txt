@@ -9,13 +9,25 @@ The website theme for clocka.co.uk.
 
 == Settings ==
 Appearance > Customize > Clocka:
-- App Store link and Google Play link. Leave one empty to show "Coming soon".
+- App Store link: in App Store Connect open your app > App Information and copy
+  the Apple ID (a long number). The link is
+  https://apps.apple.com/gb/app/clocka/id<that number>. It works once Apple
+  publishes the app.
+- TestFlight beta link (optional): used for the iPhone button until the App
+  Store link is added. In App Store Connect > TestFlight > your tester group,
+  turn on Public Link and copy it.
+- Google Play link. Leave any link empty to show "Coming soon".
 - Premium monthly and yearly prices, and the free trial length.
 - Contact email, privacy policy link, and the founder's story.
 
 Appearance > Customize > Site Identity > Site Icon: upload
 assets/img/site-icon.png if you'd like WordPress to manage the browser icon
 (the theme already uses it when no Site Icon is set).
+
+Support page: activating the theme creates a "Help and support" page at
+/support/ with contact details, quick answers and UK dementia helplines.
+Anything you type into that page in the editor appears under the contact box.
+Use https://clocka.co.uk/support/ as the Support URL in App Store Connect.
 
 Appearance > Menus: an optional "Footer links" menu adds extra links in the footer.
 

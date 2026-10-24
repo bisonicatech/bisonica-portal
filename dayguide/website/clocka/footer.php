@@ -15,6 +15,7 @@ $clocka_privacy = clocka_mod( 'clocka_privacy_url' );
 			</p>
 		</div>
 		<nav aria-label="<?php esc_attr_e( 'Footer', 'clocka' ); ?>">
+			<a href="<?php echo esc_url( clocka_support_url() ); ?>"><?php esc_html_e( 'Help and support', 'clocka' ); ?></a>
 			<?php if ( $clocka_privacy ) : ?>
 				<a href="<?php echo esc_url( $clocka_privacy ); ?>"><?php esc_html_e( 'Privacy policy', 'clocka' ); ?></a>
 			<?php endif; ?>

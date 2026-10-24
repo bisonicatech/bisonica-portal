@@ -24,6 +24,7 @@
 			<a href="<?php echo $home; ?>#features"><?php esc_html_e( 'Features', 'clocka' ); ?></a>
 			<a href="<?php echo $home; ?>#pricing"><?php esc_html_e( 'Pricing', 'clocka' ); ?></a>
 			<a href="<?php echo $home; ?>#faq"><?php esc_html_e( 'Questions', 'clocka' ); ?></a>
+			<a href="<?php echo esc_url( clocka_support_url() ); ?>"><?php esc_html_e( 'Help', 'clocka' ); ?></a>
 			<a class="btn btn--small" href="<?php echo $home; ?>#get"><?php esc_html_e( 'Get Clocka', 'clocka' ); ?></a>
 		</nav>
 	</div>

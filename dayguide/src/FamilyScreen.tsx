@@ -6,6 +6,7 @@ import Paywall from './Paywall';
 import { ContactsCard, MessageCard, PlanCard } from './PremiumCards';
 import { currentPremiumUntil, purchasesEnabled, setupPurchases } from './purchases';
 import { DataCard, PrivacyScreen } from './PrivacyData';
+import { HelpLink, HelpScreen } from './HelpSupport';
 import {
   FamilyError,
   Household,
@@ -73,6 +74,7 @@ export default function FamilyScreen({ settings, onSave, onChangeRole, onReset }
   const [editingSchedule, setEditingSchedule] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   // If this household has a subscription in the App Store (e.g. bought on another
   // family member's phone, or renewed), make sure the server knows.
@@ -146,6 +148,7 @@ export default function FamilyScreen({ settings, onSave, onChangeRole, onReset }
   };
 
   if (showPrivacy) return <PrivacyScreen onClose={() => setShowPrivacy(false)} />;
+  if (showHelp) return <HelpScreen onClose={() => setShowHelp(false)} />;
 
   if (showPaywall) {
     return (
@@ -220,6 +223,7 @@ export default function FamilyScreen({ settings, onSave, onChangeRole, onReset }
       {!!error && !!household && <Text style={form.error}>{error}</Text>}
 
       {household && !!household.patient_seen_at && <LinkCard code={code} patient={patient} />}
+      <HelpLink onOpen={() => setShowHelp(true)} />
       <DataCard
         patient={patient}
         canDeleteAll={settings.getsAlerts !== false}
