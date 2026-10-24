@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024"><rect width="1024" height="1024" fill="#1f3b73"/><g transform="translate(0.0 0.0) scale(1.0)"><circle cx="512" cy="512" r="392" fill="#ffffff" stroke="#ffcf3a" stroke-width="34"/>
+  <line x1="512.0" y1="190.0" x2="512.0" y2="142.0" stroke="#1f3b73" stroke-width="26" stroke-linecap="round"/>
+<line x1="685.0" y1="212.4" x2="697.0" y2="191.6" stroke="#1f3b73" stroke-width="14" stroke-linecap="round"/>
+<line x1="811.6" y1="339.0" x2="832.4" y2="327.0" stroke="#1f3b73" stroke-width="14" stroke-linecap="round"/>
+<line x1="834.0" y1="512.0" x2="882.0" y2="512.0" stroke="#1f3b73" stroke-width="26" stroke-linecap="round"/>
+<line x1="811.6" y1="685.0" x2="832.4" y2="697.0" stroke="#1f3b73" stroke-width="14" stroke-linecap="round"/>
+<line x1="685.0" y1="811.6" x2="697.0" y2="832.4" stroke="#1f3b73" stroke-width="14" stroke-linecap="round"/>
+<line x1="512.0" y1="834.0" x2="512.0" y2="882.0" stroke="#1f3b73" stroke-width="26" stroke-linecap="round"/>
+<line x1="339.0" y1="811.6" x2="327.0" y2="832.4" stroke="#1f3b73" stroke-width="14" stroke-linecap="round"/>
+<line x1="212.4" y1="685.0" x2="191.6" y2="697.0" stroke="#1f3b73" stroke-width="14" stroke-linecap="round"/>
+<line x1="190.0" y1="512.0" x2="142.0" y2="512.0" stroke="#1f3b73" stroke-width="26" stroke-linecap="round"/>
+<line x1="212.4" y1="339.0" x2="191.6" y2="327.0" stroke="#1f3b73" stroke-width="14" stroke-linecap="round"/>
+<line x1="339.0" y1="212.4" x2="327.0" y2="191.6" stroke="#1f3b73" stroke-width="14" stroke-linecap="round"/>
+  
+    <g stroke="#1f3b73" stroke-width="16" stroke-linejoin="round">
+      <rect x="318" y="520" width="96" height="246" rx="20" fill="#5b8def"/>
+      <path d="M 446 552 L 446 352 Q 446 286 506 286 Q 566 286 566 352 L 566 470 Z" fill="#ffcf3a"/>
+      <rect x="408" y="470" width="236" height="296" rx="54" fill="#ffcf3a"/>
+      <rect x="560" y="478" width="150" height="70" rx="35" fill="#ffcf3a"/>
+      <rect x="560" y="550" width="160" height="70" rx="35" fill="#ffcf3a"/>
+      <rect x="560" y="622" width="152" height="70" rx="35" fill="#ffcf3a"/>
+      <rect x="552" y="694" width="134" height="68" rx="34" fill="#ffcf3a"/>
+    </g></g></svg>
