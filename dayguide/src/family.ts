@@ -29,7 +29,12 @@ async function rpc<T>(fn: string, args: Record<string, unknown>): Promise<T> {
   if (!familyEnabled) throw new Error('Family link is not set up');
   const res = await fetch(`${URL}/rest/v1/rpc/${fn}`, {
     method: 'POST',
-    headers: { apikey: KEY!, Authorization: `Bearer ${KEY}`, 'Content-Type': 'application/json' },
+    headers: {
+      apikey: KEY!,
+      // Legacy anon keys are JWTs and also go in Authorization; new publishable keys (sb_publishable_…) must not.
+      ...(KEY!.startsWith('eyJ') ? { Authorization: `Bearer ${KEY}` } : {}),
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify(args),
   });
   const text = await res.text();

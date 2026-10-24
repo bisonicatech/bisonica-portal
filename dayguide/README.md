@@ -53,8 +53,10 @@ on its own; the family features are just hidden.
    and `pg_net`.
 2. In the **SQL Editor**, run
    [`supabase/migrations/0001_dayguide_family.sql`](supabase/migrations/0001_dayguide_family.sql).
-3. Copy `.env.example` to `.env` and fill in the project URL and anon key from
-   **Project Settings → API**.
+3. Put the project URL and the anon or publishable key (from **Project
+   Settings → API Keys**) in `eas.json` for app builds, and in `.env` (copy
+   `.env.example`) for running locally. Both are public values that ship
+   inside the app.
 4. Push notifications need an EAS project: run `npx eas-cli@latest init` once.
    Push notifications only work in a real build, not in a web browser.
 
