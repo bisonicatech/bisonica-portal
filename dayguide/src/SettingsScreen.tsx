@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { Entry, Mode, Settings, newId, parseTime, sortEntries } from './schedule';
-import { familyEnabled } from './family';
-import { Button, form } from './ui';
+import { Household, familyEnabled, getHousehold } from './family';
+import { Button, Screen, doneProps, form } from './ui';
 
 type Props = {
   settings: Settings;
+  /** The linked household, if this phone is connected to a family member's phone. */
+  household: Household | null;
   onSave: (s: Settings) => void;
   onClose: () => void;
   onChangeRole: () => void;
@@ -18,38 +20,45 @@ const MODES: { mode: Mode; label: string }[] = [
   { mode: 'night', label: 'Night (silent)' },
 ];
 
-export default function SettingsScreen({ settings, onSave, onClose, onChangeRole }: Props) {
+export default function SettingsScreen({ settings, household, onSave, onClose, onChangeRole }: Props) {
   const [unlocked, setUnlocked] = useState(false);
   const [pinTry, setPinTry] = useState('');
   const [draft, setDraft] = useState<Settings>(settings);
   const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
 
   if (!unlocked) {
+    // A PIN saved by an older version may be longer than 4 digits.
+    const len = Math.max(4, settings.pin.length);
+    const tryPin = (pin: string) => {
+      setPinTry(pin);
+      if (pin.length < len) return setError('');
+      if (pin === settings.pin) return setUnlocked(true);
+      setError('Wrong PIN. Try again.');
+      setPinTry('');
+    };
     return (
-      <View style={[styles.root, styles.center]}>
+      <Screen>
         <Text style={styles.h1}>Family settings</Text>
-        <Text style={styles.label}>Enter PIN</Text>
+        <Text style={styles.label}>Enter the 4-digit PIN</Text>
         <TextInput
           style={[styles.input, styles.pin]}
           value={pinTry}
-          onChangeText={setPinTry}
+          onChangeText={(t) => tryPin(t.replace(/\D/g, '').slice(0, len))}
           keyboardType="number-pad"
+          maxLength={len}
           secureTextEntry
           autoFocus
-          onSubmitEditing={() => (pinTry === settings.pin ? setUnlocked(true) : setError('Wrong PIN'))}
+          {...doneProps}
         />
         {!!error && <Text style={styles.error}>{error}</Text>}
-        <View style={styles.row}>
-          <Button label="Back" onPress={onClose} />
-          <Button
-            label="Unlock"
-            primary
-            onPress={() => (pinTry === settings.pin ? setUnlocked(true) : setError('Wrong PIN'))}
-          />
-        </View>
-      </View>
+        <Button label="Back" onPress={onClose} />
+      </Screen>
     );
   }
+
+  const linked = !!household && household.code === settings.householdCode && !!settings.householdCode;
+  const carer = household?.carer_name || draft.carerName || 'the family member';
 
   const update = (id: string, patch: Partial<Entry>) =>
     setDraft((d) => ({ ...d, entries: d.entries.map((e) => (e.id === id ? { ...e, ...patch } : e)) }));
@@ -62,23 +71,75 @@ export default function SettingsScreen({ settings, onSave, onClose, onChangeRole
       entries: [...d.entries, { id: newId(), time: '12:00', mode: 'day', sound: true, icon: '🙂', message: '' }],
     }));
 
-  const save = () => {
+  const save = async () => {
     const bad = draft.entries.find((e) => parseTime(e.time) === null);
     if (bad) return setError(`"${bad.time}" isn't a valid time. Use 24-hour HH:MM, e.g. 07:30 or 21:00.`);
-    if (!/^\d{4,8}$/.test(draft.pin)) return setError('PIN must be 4 to 8 digits.');
+    if (!/^\d{4}$/.test(draft.pin)) return setError('The PIN must be exactly 4 digits.');
+    let next = { ...draft, entries: sortEntries(draft.entries) };
+
+    // Check a new family code before saving, and take the names and number from it.
+    if (familyEnabled && next.householdCode && next.householdCode !== settings.householdCode) {
+      setSaving(true);
+      try {
+        const h = await getHousehold(next.householdCode);
+        next = { ...next, name: h.patient_name || next.name, carerName: h.carer_name || next.carerName, carerPhone: h.carer_phone || next.carerPhone };
+      } catch (e) {
+        setSaving(false);
+        return setError((e as Error).message);
+      }
+      setSaving(false);
+    }
     setError('');
-    onSave({ ...draft, entries: sortEntries(draft.entries) });
+    onSave(next);
   };
 
+  const saveRow = (
+    <View style={styles.row}>
+      <Button label="Cancel" onPress={onClose} />
+      <Button label={saving ? 'Checking…' : 'Save'} primary disabled={saving} onPress={save} />
+    </View>
+  );
+
   return (
-    <ScrollView style={styles.root} contentContainerStyle={{ paddingBottom: 60 }}>
+    <Screen>
       <Text style={styles.h1}>Family settings</Text>
+      {saveRow}
+      {!!error && <Text style={styles.error}>{error}</Text>}
+
+      {familyEnabled && (
+        <View style={[styles.card, { marginTop: 16 }]}>
+          <Text style={styles.h3}>Link to {carer}'s phone</Text>
+          <Text style={styles.label}>Family code (shown in {carer}'s DayGuide app)</Text>
+          <TextInput
+            style={[styles.input, styles.code]}
+            value={draft.householdCode}
+            onChangeText={(t) => {
+              setError('');
+              setDraft({ ...draft, householdCode: t.replace(/[^0-9a-z]/gi, '').toUpperCase() });
+            }}
+            autoCapitalize="characters"
+            autoCorrect={false}
+            spellCheck={false}
+            keyboardType="default"
+            maxLength={10}
+            placeholder="e.g. 4A5891DA82"
+            {...doneProps}
+          />
+          {linked && draft.householdCode === settings.householdCode ? (
+            <Text style={styles.ok}>✓ Linked to {carer}'s phone</Text>
+          ) : settings.householdCode && draft.householdCode === settings.householdCode ? (
+            <Text style={styles.warn}>Saved, but can't reach {carer}'s phone right now. Check the internet connection.</Text>
+          ) : (
+            <Text style={styles.hint}>Type the code, then tap Save. It's checked when you save.</Text>
+          )}
+        </View>
+      )}
 
       <Text style={styles.label}>Name of the person using this phone (used where a message says {'{name}'})</Text>
-      <TextInput style={styles.input} value={draft.name} onChangeText={(name) => setDraft({ ...draft, name })} placeholder="e.g. David" />
+      <TextInput style={styles.input} value={draft.name} onChangeText={(name) => setDraft({ ...draft, name })} placeholder="e.g. David" {...doneProps} />
 
       <Text style={styles.label}>Family member's name (for the Call button)</Text>
-      <TextInput style={styles.input} value={draft.carerName} onChangeText={(carerName) => setDraft({ ...draft, carerName })} placeholder="e.g. Carrie" />
+      <TextInput style={styles.input} value={draft.carerName} onChangeText={(carerName) => setDraft({ ...draft, carerName })} placeholder="e.g. Carrie" {...doneProps} />
 
       <Text style={styles.label}>Family member's phone number</Text>
       <TextInput
@@ -87,27 +148,17 @@ export default function SettingsScreen({ settings, onSave, onClose, onChangeRole
         onChangeText={(carerPhone) => setDraft({ ...draft, carerPhone })}
         keyboardType="phone-pad"
         placeholder="Leave blank to hide the Call button"
+        {...doneProps}
       />
 
-      {familyEnabled && (
-        <>
-          <Text style={styles.label}>Family code (from the family member's DayGuide app)</Text>
-          <TextInput
-            style={styles.input}
-            value={draft.householdCode}
-            onChangeText={(householdCode) => setDraft({ ...draft, householdCode: householdCode.trim().toUpperCase() })}
-            autoCapitalize="characters"
-            placeholder="e.g. 4A5891DA82"
-          />
-        </>
-      )}
-
-      <Text style={styles.label}>Settings PIN</Text>
+      <Text style={styles.label}>Settings PIN (4 digits)</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, styles.pin]}
         value={draft.pin}
-        onChangeText={(pin) => setDraft({ ...draft, pin })}
+        onChangeText={(pin) => setDraft({ ...draft, pin: pin.replace(/\D/g, '').slice(0, 4) })}
         keyboardType="number-pad"
+        maxLength={4}
+        {...doneProps}
       />
 
       <Text style={styles.h2}>Daily schedule</Text>
@@ -118,8 +169,8 @@ export default function SettingsScreen({ settings, onSave, onClose, onChangeRole
       {draft.entries.map((e) => (
         <View key={e.id} style={styles.card}>
           <View style={styles.row}>
-            <TextInput style={[styles.input, styles.time]} value={e.time} onChangeText={(time) => update(e.id, { time })} placeholder="07:00" />
-            <TextInput style={[styles.input, styles.icon]} value={e.icon} onChangeText={(icon) => update(e.id, { icon })} />
+            <TextInput style={[styles.input, styles.time]} value={e.time} onChangeText={(time) => update(e.id, { time })} placeholder="07:00" {...doneProps} />
+            <TextInput style={[styles.input, styles.icon]} value={e.icon} onChangeText={(icon) => update(e.id, { icon })} {...doneProps} />
             <Pressable onPress={() => remove(e.id)} style={styles.delete}>
               <Text style={styles.deleteText}>Delete</Text>
             </Pressable>
@@ -130,6 +181,7 @@ export default function SettingsScreen({ settings, onSave, onClose, onChangeRole
             onChangeText={(message) => update(e.id, { message })}
             multiline
             placeholder="What should he do now?"
+            {...doneProps}
           />
           <View style={styles.modes}>
             {MODES.map((m) => (
@@ -153,21 +205,20 @@ export default function SettingsScreen({ settings, onSave, onClose, onChangeRole
 
       <Button label="+ Add a time" onPress={add} />
       {!!error && <Text style={styles.error}>{error}</Text>}
-      <View style={[styles.row, { marginTop: 20 }]}>
-        <Button label="Cancel" onPress={onClose} />
-        <Button label="Save" primary onPress={save} />
-      </View>
+      <View style={{ marginTop: 12 }}>{saveRow}</View>
       <Pressable onPress={onChangeRole} style={{ marginTop: 32 }}>
         <Text style={styles.hint}>Change what this phone is for…</Text>
       </Pressable>
-    </ScrollView>
+    </Screen>
   );
 }
 
 
 const styles = StyleSheet.create({
   ...form,
-  pin: { width: 160, textAlign: 'center', fontSize: 24 },
+  pin: { width: 140, textAlign: 'center', fontSize: 26, letterSpacing: 8 },
+  code: { fontSize: 22, letterSpacing: 2 },
+  h3: { fontSize: 18, fontWeight: '700', color: '#111' },
   time: { width: 90, textAlign: 'center' },
   icon: { width: 60, textAlign: 'center' },
   delete: { marginLeft: 'auto', padding: 8 },

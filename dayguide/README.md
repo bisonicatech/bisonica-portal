@@ -20,7 +20,7 @@ Android from one codebase (Expo / React Native).
 - **Screen stays on during the day** while the app is open, and is allowed to
   switch off at night.
 - **Hidden family settings.** Hold the clock time (the big numbers) for 3
-  seconds, then enter the PIN (default `1234`; change it in settings).
+  seconds, then enter the 4-digit PIN (default `1234`; change it in settings).
 - **Call button.** A big "📞 Call Carrie" button on the clock (hidden at night
   unless Out mode is on).
 
@@ -52,7 +52,9 @@ on its own; the family features are just hidden.
 1. Create a Supabase project. In **Database → Extensions**, turn on `pg_cron`
    and `pg_net`.
 2. In the **SQL Editor**, run
-   [`supabase/migrations/0001_dayguide_family.sql`](supabase/migrations/0001_dayguide_family.sql).
+   [`supabase/migrations/0001_dayguide_family.sql`](supabase/migrations/0001_dayguide_family.sql),
+   then [`0002_patient_seen.sql`](supabase/migrations/0002_patient_seen.sql)
+   (lets the family member see whether the cared-for phone is connected).
 3. Put the project URL and the anon or publishable key (from **Project
    Settings → API Keys**) in `eas.json` for app builds, and in `.env` (copy
    `.env.example`) for running locally. Both are public values that ship

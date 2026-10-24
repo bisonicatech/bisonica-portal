@@ -1,10 +1,10 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 import { Role } from './schedule';
-import { form } from './ui';
+import { Screen, form } from './ui';
 
 export default function WelcomeScreen({ onChoose }: { onChoose: (role: Role) => void }) {
   return (
-    <View style={[form.root, form.center]}>
+    <Screen center>
       <Text style={form.h1}>Welcome to DayGuide</Text>
       <Text style={[form.hint, { textAlign: 'center', fontSize: 17 }]}>Who will use this phone?</Text>
       <Pressable style={styles.choice} onPress={() => onChoose('patient')}>
@@ -17,7 +17,7 @@ export default function WelcomeScreen({ onChoose }: { onChoose: (role: Role) => 
         <Text style={styles.choiceTitle}>A family member or carer</Text>
         <Text style={styles.choiceText}>Turn on Out mode and get check-in alerts.</Text>
       </Pressable>
-    </View>
+    </Screen>
   );
 }
 

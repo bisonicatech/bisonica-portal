@@ -23,11 +23,21 @@ export type Household = {
   checkin_prompted: boolean;
   missed_alert_sent: boolean;
   last_checkin_at: string | null;
+  /** Last time the cared-for person's phone connected. Missing if 0002_patient_seen.sql hasn't been run. */
+  patient_seen_at?: string | null;
 };
+
+export class FamilyError extends Error {
+  constructor(message: string, public kind: 'not_found' | 'missing_function' | 'network') {
+    super(message);
+  }
+}
 
 async function rpc<T>(fn: string, args: Record<string, unknown>): Promise<T> {
   if (!familyEnabled) throw new Error('Family link is not set up');
-  const res = await fetch(`${URL}/rest/v1/rpc/${fn}`, {
+  let res: Response;
+  try {
+    res = await fetch(`${URL}/rest/v1/rpc/${fn}`, {
     method: 'POST',
     headers: {
       apikey: KEY!,
@@ -36,10 +46,15 @@ async function rpc<T>(fn: string, args: Record<string, unknown>): Promise<T> {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(args),
-  });
+    });
+  } catch {
+    throw new FamilyError('Could not reach the server. Check the internet connection.', 'network');
+  }
   const text = await res.text();
   if (!res.ok) {
-    throw new Error(text.includes('household_not_found') ? "That code wasn't found. Check it and try again." : 'Could not reach the server. Check the internet connection.');
+    if (text.includes('household_not_found')) throw new FamilyError("That code wasn't found. Check it and try again.", 'not_found');
+    if (text.includes('PGRST202')) throw new FamilyError('Server needs updating.', 'missing_function');
+    throw new FamilyError('Could not reach the server. Check the internet connection.', 'network');
   }
   return (text ? JSON.parse(text) : null) as T;
 }
@@ -48,6 +63,17 @@ export const createHousehold = (patientName: string, carerName: string, carerPho
   rpc<Household>('dg_create_household', { p_patient_name: patientName, p_carer_name: carerName, p_carer_phone: carerPhone });
 
 export const getHousehold = (code: string) => rpc<Household>('dg_get_household', { p_code: code });
+
+/** Used by the cared-for person's phone: fetches the household and records that the phone is connected. */
+export async function getHouseholdAsPatient(code: string): Promise<Household> {
+  try {
+    return await rpc<Household>('dg_patient_seen', { p_code: code });
+  } catch (e) {
+    // Older server without dg_patient_seen: fall back to a plain read.
+    if (e instanceof FamilyError && e.kind === 'missing_function') return getHousehold(code);
+    throw e;
+  }
+}
 
 export const updateHousehold = (code: string, patientName: string, carerName: string, carerPhone: string) =>
   rpc<Household>('dg_update_household', { p_code: code, p_patient_name: patientName, p_carer_name: carerName, p_carer_phone: carerPhone });

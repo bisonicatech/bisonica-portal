@@ -1,4 +1,44 @@
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { ReactNode } from 'react';
+import { InputAccessoryView, Keyboard, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const DONE_ID = 'keyboard-done';
+
+/** Spread onto every TextInput so iPhone keyboards (including number pads) get a Done button. */
+export const doneProps = Platform.OS === 'ios' ? { inputAccessoryViewID: DONE_ID } : {};
+
+/**
+ * Page wrapper for the family-facing screens: starts just below the notch,
+ * scrolls, and keeps the focused field above the keyboard.
+ */
+export function Screen({ children, center }: { children: ReactNode; center?: boolean }) {
+  const insets = useSafeAreaInsets();
+  return (
+    <>
+      <ScrollView
+        style={form.screen}
+        contentContainerStyle={[
+          { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 40, paddingHorizontal: 20 },
+          center && { flexGrow: 1, alignItems: 'center', justifyContent: 'center' },
+        ]}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
+        automaticallyAdjustKeyboardInsets
+      >
+        {children}
+      </ScrollView>
+      {Platform.OS === 'ios' && (
+        <InputAccessoryView nativeID={DONE_ID}>
+          <View style={form.doneBar}>
+            <Pressable onPress={Keyboard.dismiss} hitSlop={12}>
+              <Text style={form.doneText}>Done</Text>
+            </Pressable>
+          </View>
+        </InputAccessoryView>
+      )}
+    </>
+  );
+}
 
 export function Button({ label, onPress, primary, disabled }: { label: string; onPress: () => void; primary?: boolean; disabled?: boolean }) {
   return (
@@ -10,9 +50,13 @@ export function Button({ label, onPress, primary, disabled }: { label: string; o
 
 /** Shared styles for the family-facing screens. */
 export const form = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#f6f7f9', padding: 20, paddingTop: 60 },
+  screen: { flex: 1, backgroundColor: '#f6f7f9' },
+  doneBar: { backgroundColor: '#e9ebef', borderTopWidth: 1, borderColor: '#cfd3da', paddingHorizontal: 16, paddingVertical: 10, alignItems: 'flex-end' },
+  doneText: { fontSize: 18, fontWeight: '700', color: '#1f3b73' },
   center: { alignItems: 'center', justifyContent: 'center' },
-  h1: { fontSize: 26, fontWeight: '800', marginBottom: 12, color: '#111' },
+  h1: { fontSize: 26, fontWeight: '800', marginBottom: 8, color: '#111' },
+  ok: { color: '#1e6b2f', fontSize: 15, fontWeight: '600', marginTop: 2 },
+  warn: { color: '#8a5a00', fontSize: 15, fontWeight: '600', marginTop: 2 },
   h2: { fontSize: 20, fontWeight: '700', marginTop: 24, color: '#111' },
   hint: { color: '#555', marginBottom: 12, marginTop: 4 },
   label: { fontSize: 15, color: '#333', marginTop: 12, marginBottom: 4 },

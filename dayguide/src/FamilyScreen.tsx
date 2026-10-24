@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { AppState, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { AppState, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Settings } from './schedule';
 import {
   Household,
@@ -11,7 +11,7 @@ import {
   registerForPush,
   startOut,
 } from './family';
-import { Button, form } from './ui';
+import { Button, Screen, doneProps, form } from './ui';
 
 type Props = {
   settings: Settings;
@@ -93,13 +93,13 @@ export default function FamilyScreen({ settings, onSave, onChangeRole }: Props) 
 
   if (!familyEnabled) {
     return (
-      <View style={[form.root, form.center]}>
+      <Screen center>
         <Text style={form.h1}>Family link not set up</Text>
         <Text style={[form.hint, { textAlign: 'center' }]}>
           This copy of DayGuide isn't connected to a server yet, so Out mode and check-ins aren't available. See the README.
         </Text>
         <Button label="Change what this phone is for" onPress={onChangeRole} />
-      </View>
+      </Screen>
     );
   }
 
@@ -109,8 +109,9 @@ export default function FamilyScreen({ settings, onSave, onChangeRole }: Props) 
   const carer = household?.carer_name || settings.carerName;
 
   return (
-    <ScrollView style={form.root} contentContainerStyle={{ paddingBottom: 60 }}>
+    <Screen>
       <Text style={form.h1}>{patient}</Text>
+      {household && <PhoneStatus household={household} patient={patient} />}
 
       {!household ? (
         <Text style={form.hint}>{error || 'Loading…'}</Text>
@@ -134,7 +135,22 @@ export default function FamilyScreen({ settings, onSave, onChangeRole }: Props) 
       <Pressable onPress={onChangeRole}>
         <Text style={form.hint}>Change what this phone is for…</Text>
       </Pressable>
-    </ScrollView>
+    </Screen>
+  );
+}
+
+/** Whether the cared-for person's phone is linked and has connected recently. */
+function PhoneStatus({ household: h, patient }: { household: Household; patient: string }) {
+  if (h.patient_seen_at === undefined) return null; // server not updated yet
+  if (!h.patient_seen_at) {
+    return <Text style={form.warn}>⚠️ {patient}'s phone isn't linked yet. Enter the code below on it.</Text>;
+  }
+  const mins = Math.round((Date.now() - new Date(h.patient_seen_at).getTime()) / 60000);
+  if (mins <= 2) return <Text style={form.ok}>✓ {patient}'s phone is connected</Text>;
+  return (
+    <Text style={form.warn}>
+      ⚠️ {patient}'s phone last connected at {formatTime(h.patient_seen_at)}. It may be off, offline, or the app closed.
+    </Text>
   );
 }
 
@@ -180,7 +196,7 @@ function GoOut({ carer, patient, busy, onStart }: { carer: string; patient: stri
       <Text style={form.h2}>Going out?</Text>
 
       <Text style={form.label}>Back by</Text>
-      <TextInput style={[form.input, { width: 140 }]} value={backText} onChangeText={setBackText} placeholder="3:30 pm" />
+      <TextInput style={[form.input, { width: 140 }]} value={backText} onChangeText={setBackText} placeholder="3:30 pm" {...doneProps} />
       {!back && <Text style={form.error}>Type a time like 3pm or 15:30</Text>}
 
       <Text style={form.label}>Ask {patient} "Are you okay?" every</Text>
@@ -193,7 +209,7 @@ function GoOut({ carer, patient, busy, onStart }: { carer: string; patient: stri
       </View>
 
       <Text style={form.label}>Message on {patient}'s screen</Text>
-      <TextInput style={[form.input, { minHeight: 90 }]} value={message} onChangeText={setCustom} multiline />
+      <TextInput style={[form.input, { minHeight: 90 }]} value={message} onChangeText={setCustom} multiline {...doneProps} />
 
       <Pressable
         onPress={() => back && onStart(back, message, every)}
@@ -230,7 +246,7 @@ function Setup({ settings, onSave, onChangeRole }: Props) {
   };
 
   return (
-    <ScrollView style={form.root} contentContainerStyle={{ paddingBottom: 60 }}>
+    <Screen>
       <Text style={form.h1}>Family setup</Text>
       <View style={form.row}>
         <Pressable onPress={() => setMode('new')} style={[form.chip, mode === 'new' && form.chipOn]}>
@@ -244,11 +260,11 @@ function Setup({ settings, onSave, onChangeRole }: Props) {
       {mode === 'new' ? (
         <>
           <Text style={form.label}>Name of the person you care for</Text>
-          <TextInput style={form.input} value={patient} onChangeText={setPatient} placeholder="e.g. David" />
+          <TextInput style={form.input} value={patient} onChangeText={setPatient} placeholder="e.g. David" {...doneProps} />
           <Text style={form.label}>Your name</Text>
-          <TextInput style={form.input} value={carer} onChangeText={setCarer} placeholder="e.g. Carrie" />
+          <TextInput style={form.input} value={carer} onChangeText={setCarer} placeholder="e.g. Carrie" {...doneProps} />
           <Text style={form.label}>Your phone number (for their Call button)</Text>
-          <TextInput style={form.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+          <TextInput style={form.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" {...doneProps} />
         </>
       ) : (
         <>
@@ -256,9 +272,13 @@ function Setup({ settings, onSave, onChangeRole }: Props) {
           <TextInput
             style={form.input}
             value={code}
-            onChangeText={(t) => setCode(t.trim().toUpperCase())}
+            onChangeText={(t) => setCode(t.replace(/[^0-9a-z]/gi, '').toUpperCase())}
             autoCapitalize="characters"
+            autoCorrect={false}
+            spellCheck={false}
+            maxLength={10}
             placeholder="e.g. 4A5891DA82"
+            {...doneProps}
           />
         </>
       )}
@@ -268,7 +288,7 @@ function Setup({ settings, onSave, onChangeRole }: Props) {
       <Pressable onPress={onChangeRole} style={{ marginTop: 24 }}>
         <Text style={form.hint}>Change what this phone is for…</Text>
       </Pressable>
-    </ScrollView>
+    </Screen>
   );
 }
 

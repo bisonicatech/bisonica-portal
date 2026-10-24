@@ -11,7 +11,7 @@ import WelcomeScreen from './src/WelcomeScreen';
 import { DEFAULT_SETTINGS, Role, Settings, currentEntry } from './src/schedule';
 import { loadSettings, saveSettings } from './src/storage';
 import { clearReminders, syncReminders } from './src/reminders';
-import { Household, checkIn, familyEnabled, getHousehold, registerForPush } from './src/family';
+import { Household, checkIn, familyEnabled, getHouseholdAsPatient, registerForPush } from './src/family';
 
 export default function App() {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
@@ -54,7 +54,7 @@ export default function App() {
   const refresh = useCallback(async () => {
     if (!code) return setHousehold(null);
     try {
-      setHousehold(await getHousehold(code));
+      setHousehold(await getHouseholdAsPatient(code));
     } catch {
       // Keep showing the last known state if the connection drops.
     }
@@ -76,7 +76,7 @@ export default function App() {
     }
     refresh();
     registerForPush(code, 'patient').catch(() => {});
-    const t = setInterval(refresh, 30_000);
+    const t = setInterval(refresh, 15_000);
     const sub = AppState.addEventListener('change', (s) => s === 'active' && refresh());
     return () => {
       clearInterval(t);
@@ -112,6 +112,7 @@ export default function App() {
     screen = (
       <SettingsScreen
         settings={settings}
+        household={household}
         onSave={save}
         onClose={() => setShowSettings(false)}
         onChangeRole={() => chooseRole(undefined)}
