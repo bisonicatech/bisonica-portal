@@ -128,7 +128,7 @@ export default function FamilyScreen({ settings, onSave, onChangeRole }: Props) 
           {code}
         </Text>
         <Text style={form.hint}>
-          On {patient}'s phone: hold the top-right corner of the clock for 3 seconds, enter the PIN, and type this into "Family code".
+          On {patient}'s phone: hold the clock time for 3 seconds, enter the PIN, and type this into "Family code".
         </Text>
       </View>
       <Pressable onPress={onChangeRole}>

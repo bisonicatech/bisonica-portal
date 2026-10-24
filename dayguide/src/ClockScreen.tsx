@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Linking, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Mode, Settings, currentEntry, fillName, periodLabel } from './schedule';
 import { Household, checkInDue, formatTime } from './family';
 
@@ -19,7 +20,8 @@ type Props = {
 
 export default function ClockScreen({ settings, household, onOpenSettings, onCheckIn }: Props) {
   const [now, setNow] = useState(new Date());
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -44,7 +46,7 @@ export default function ClockScreen({ settings, household, onOpenSettings, onChe
   const day = now.toLocaleDateString('en-GB', { weekday: 'long' });
   const date = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
 
-  // Family opens settings by holding the top-right corner for 3 seconds.
+  // Family opens settings by holding the clock time for 3 seconds.
   const startHold = () => {
     holdTimer.current = setTimeout(onOpenSettings, 3000);
   };
@@ -52,18 +54,22 @@ export default function ClockScreen({ settings, household, onOpenSettings, onChe
     if (holdTimer.current) clearTimeout(holdTimer.current);
   };
 
-  const base = Math.min(width, 600);
+  // Size everything from the smaller of width and height so it fits on any phone.
+  const busy = askOkay || !!carerPhone;
+  const base = Math.min(width, height * (busy ? 0.5 : 0.6), 600);
 
   return (
-    <View style={[styles.root, { backgroundColor: theme.bg }]}>
-      <Pressable
-        onPressIn={startHold}
-        onPressOut={endHold}
-        style={styles.hiddenCorner}
-        accessibilityLabel="Hold for 3 seconds to open settings"
-      />
+    <ScrollView
+      style={{ backgroundColor: theme.bg }}
+      contentContainerStyle={[
+        styles.root,
+        { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16, paddingLeft: insets.left + 20, paddingRight: insets.right + 20 },
+      ]}
+    >
       <Text style={[styles.period, { color: theme.text, fontSize: base * 0.1 }]}>{periodLabel(now, entry?.mode)}</Text>
-      <Text style={[styles.time, { color: theme.text, fontSize: base * 0.17 }]}>{time}</Text>
+      <Pressable onPressIn={startHold} onPressOut={endHold} accessibilityHint="Family: hold for 3 seconds to open settings">
+        <Text style={[styles.time, { color: theme.text, fontSize: base * 0.17 }]}>{time}</Text>
+      </Pressable>
       <Text style={[styles.date, { color: theme.sub, fontSize: base * 0.065 }]}>
         {day} {date}
       </Text>
@@ -91,21 +97,20 @@ export default function ClockScreen({ settings, household, onOpenSettings, onChe
           <Text style={styles.bigButtonText}>📞 Call {carerName}</Text>
         </Pressable>
       )}
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  hiddenCorner: { position: 'absolute', top: 0, right: 0, width: 90, height: 90, zIndex: 10 },
+  root: { flexGrow: 1, alignItems: 'center', justifyContent: 'center' },
   period: { fontWeight: '700', letterSpacing: 1, textAlign: 'center' },
   time: { fontWeight: '800', textAlign: 'center', marginVertical: 4 },
   date: { fontWeight: '500', textAlign: 'center' },
-  messageBox: { marginTop: 32, alignItems: 'center', maxWidth: 700 },
+  messageBox: { marginTop: 20, alignItems: 'center', maxWidth: 700 },
   message: { fontWeight: '700', textAlign: 'center', marginTop: 12 },
-  bigButton: { marginTop: 24, borderRadius: 20, paddingVertical: 18, paddingHorizontal: 28, alignItems: 'center', minWidth: 260 },
+  bigButton: { marginTop: 18, borderRadius: 20, paddingVertical: 14, paddingHorizontal: 28, alignItems: 'center', minWidth: 260 },
   okay: { backgroundColor: '#1e8e3e' },
   call: { backgroundColor: '#1f3b73' },
-  bigButtonText: { color: '#fff', fontSize: 28, fontWeight: '800' },
+  bigButtonText: { color: '#fff', fontSize: 26, fontWeight: '800' },
   bigButtonSub: { color: '#e6ffe9', fontSize: 17, marginTop: 4 },
 });

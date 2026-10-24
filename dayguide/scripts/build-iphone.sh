@@ -24,8 +24,13 @@ fi
 
 say "Downloading the app code"
 if [ -d "$DIR/.git" ]; then
+  # Keep the Expo project link that 'eas init' added last time.
+  PROJECT_ID=$(node -e "try{console.log(require('$DIR/dayguide/app.json').expo.extra.eas.projectId||'')}catch(e){}")
   git -C "$DIR" fetch -q --depth 1 origin "$BRANCH"
   git -C "$DIR" reset -q --hard FETCH_HEAD
+  if [ -n "$PROJECT_ID" ]; then
+    node -e "const f='$DIR/dayguide/app.json',fs=require('fs'),j=JSON.parse(fs.readFileSync(f));j.expo.extra=j.expo.extra||{};j.expo.extra.eas={projectId:'$PROJECT_ID'};fs.writeFileSync(f,JSON.stringify(j,null,2)+'\\n')"
+  fi
 else
   git clone -q --depth 1 -b "$BRANCH" https://github.com/bisonicatech/bisonica-portal.git "$DIR"
 fi
@@ -42,7 +47,7 @@ if ! $EAS whoami >/dev/null 2>&1; then
 fi
 
 say "Linking the app to your Expo account (answer Y if asked)"
-$EAS init
+$EAS init --non-interactive 2>/dev/null || $EAS init
 
 say "Building in Expo's cloud and uploading to TestFlight"
 echo "When asked:"

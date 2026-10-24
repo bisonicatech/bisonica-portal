@@ -19,7 +19,7 @@ Android from one codebase (Expo / React Native).
   reminder notification at their time. Night entries never make a sound.
 - **Screen stays on during the day** while the app is open, and is allowed to
   switch off at night.
-- **Hidden family settings.** Hold the top-right corner of the clock for 3
+- **Hidden family settings.** Hold the clock time (the big numbers) for 3
   seconds, then enter the PIN (default `1234`; change it in settings).
 - **Call button.** A big "📞 Call Carrie" button on the clock (hidden at night
   unless Out mode is on).
