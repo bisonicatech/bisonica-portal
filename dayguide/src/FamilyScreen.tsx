@@ -387,8 +387,10 @@ function Setup({ settings, onSave, onChangeRole }: Props) {
   const [busy, setBusy] = useState(false);
 
   const go = async () => {
-    setBusy(true);
     setError('');
+    if (mode === 'new' && !patient.trim()) return setError('Please type the name of the person you care for.');
+    if (mode === 'new' && !carer.trim()) return setError('Please type your name.');
+    setBusy(true);
     try {
       const h = mode === 'new' ? await createHousehold(patient, carer, phone) : await getHousehold(code);
       onSave({ ...settings, householdCode: h.code, name: h.patient_name, carerName: h.carer_name, carerPhone: h.carer_phone });
@@ -414,9 +416,9 @@ function Setup({ settings, onSave, onChangeRole }: Props) {
       {mode === 'new' ? (
         <>
           <Text style={form.label}>Name of the person you care for</Text>
-          <TextInput style={form.input} value={patient} onChangeText={setPatient} placeholder="e.g. David" {...doneProps} />
+          <TextInput style={form.input} value={patient} onChangeText={setPatient} placeholder="e.g. Margaret, or Dad" autoCapitalize="words" {...doneProps} />
           <Text style={form.label}>Your name</Text>
-          <TextInput style={form.input} value={carer} onChangeText={setCarer} placeholder="e.g. Carrie" {...doneProps} />
+          <TextInput style={form.input} value={carer} onChangeText={setCarer} placeholder="e.g. Sarah" autoCapitalize="words" {...doneProps} />
           <Text style={form.label}>Your phone number (for their Call button)</Text>
           <TextInput style={form.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" {...doneProps} />
         </>

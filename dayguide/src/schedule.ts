@@ -16,6 +16,8 @@ export type Role = 'patient' | 'carer';
 export type Settings = {
   /** What this phone is for. Unset until chosen on first launch. */
   role?: Role;
+  /** First-run setup finished on the cared-for person's phone. */
+  setupDone?: boolean;
   /** The person being cared for. */
   name: string;
   /** The family member who looks after them. */
@@ -36,8 +38,8 @@ let counter = 0;
 export const newId = () => `${Date.now().toString(36)}-${(counter++).toString(36)}`;
 
 export const DEFAULT_SETTINGS: Settings = {
-  name: 'David',
-  carerName: 'Carrie',
+  name: '',
+  carerName: '',
   carerPhone: '',
   householdCode: '',
   pin: '1234',

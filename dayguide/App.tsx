@@ -8,6 +8,7 @@ import ClockScreen from './src/ClockScreen';
 import SettingsScreen from './src/SettingsScreen';
 import FamilyScreen from './src/FamilyScreen';
 import WelcomeScreen from './src/WelcomeScreen';
+import PatientSetup from './src/PatientSetup';
 import { DEFAULT_SETTINGS, Role, Settings, currentEntry } from './src/schedule';
 import { loadSettings, saveSettings } from './src/storage';
 import { clearReminders, syncReminders } from './src/reminders';
@@ -124,13 +125,16 @@ export default function App() {
     if (next.schedulePending && next.householdCode === settings.householdCode) refresh();
   };
 
-  const chooseRole = (role: Role | undefined) => save({ ...settings, role });
+  // Going back to "who is this phone for?" also re-runs first-run setup.
+  const chooseRole = (role: Role | undefined) => save({ ...settings, role, ...(role ? {} : { setupDone: false }) });
 
   if (!loaded) return null;
 
   let screen;
   if (!settings.role) {
     screen = <WelcomeScreen onChoose={chooseRole} />;
+  } else if (settings.role === 'patient' && !settings.setupDone) {
+    screen = <PatientSetup settings={settings} onDone={(s) => save({ ...s, setupDone: true })} onBack={() => chooseRole(undefined)} />;
   } else if (settings.role === 'carer') {
     screen = <FamilyScreen settings={settings} onSave={save} onChangeRole={() => chooseRole(undefined)} />;
   } else if (showSettings) {

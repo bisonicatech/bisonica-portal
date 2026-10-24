@@ -27,7 +27,9 @@ Android from one codebase (Expo / React Native).
 ## Family features: Out mode and check-ins
 
 On first launch each phone is set up either for the person being cared for
-(David) or for a family member (Carrie). Carrie's app shows a 6-digit link
+or for a family member, and asks for their names (the examples here use David
+and Carrie). The cared-for phone's first-run setup asks for the person's name,
+an optional link code or family member to call, and the settings PIN. Carrie's app shows a 6-digit link
 code (single use, lasts 15 minutes), which is typed into the top of David's
 settings to link the two phones. It is separate from the settings PIN.
 

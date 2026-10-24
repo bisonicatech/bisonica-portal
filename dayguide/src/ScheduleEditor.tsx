@@ -36,7 +36,7 @@ export default function ScheduleEditor({ entries, onChange }: { entries: Entry[]
             value={e.message}
             onChangeText={(message) => update(e.id, { message })}
             multiline
-            placeholder="What should he do now?"
+            placeholder="What should they do now?"
             {...doneProps}
           />
           <View style={styles.modes}>

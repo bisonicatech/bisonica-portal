@@ -127,10 +127,10 @@ export default function SettingsScreen({ settings, household, onSave, onClose, o
       )}
 
       <Text style={styles.label}>Name of the person using this phone (used where a message says {'{name}'})</Text>
-      <TextInput style={styles.input} value={draft.name} onChangeText={(name) => setDraft({ ...draft, name })} placeholder="e.g. David" {...doneProps} />
+      <TextInput style={styles.input} value={draft.name} onChangeText={(name) => setDraft({ ...draft, name })} placeholder="e.g. Margaret, or Dad" {...doneProps} />
 
       <Text style={styles.label}>Family member's name (for the Call button)</Text>
-      <TextInput style={styles.input} value={draft.carerName} onChangeText={(carerName) => setDraft({ ...draft, carerName })} placeholder="e.g. Carrie" {...doneProps} />
+      <TextInput style={styles.input} value={draft.carerName} onChangeText={(carerName) => setDraft({ ...draft, carerName })} placeholder="e.g. Sarah" {...doneProps} />
 
       <Text style={styles.label}>Family member's phone number</Text>
       <TextInput

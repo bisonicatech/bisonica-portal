@@ -4,8 +4,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const DONE_ID = 'keyboard-done';
 
-/** Spread onto every TextInput so iPhone keyboards (including number pads) get a Done button. */
-export const doneProps = Platform.OS === 'ios' ? { inputAccessoryViewID: DONE_ID } : {};
+/**
+ * Spread onto every TextInput: a Done button on iPhone keyboards (including number pads)
+ * and a light example text, so empty boxes don't look filled in.
+ */
+export const doneProps = {
+  placeholderTextColor: '#a3a8b3',
+  ...(Platform.OS === 'ios' ? { inputAccessoryViewID: DONE_ID } : {}),
+};
 
 /**
  * Page wrapper for the family-facing screens: starts just below the notch,

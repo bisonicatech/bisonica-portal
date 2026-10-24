@@ -84,7 +84,7 @@ export default function ClockScreen({ settings, household, onOpenSettings, onChe
       {askOkay && (
         <Pressable onPress={onCheckIn} style={[styles.bigButton, styles.okay]} accessibilityRole="button">
           <Text style={styles.bigButtonText}>I'm okay 👍</Text>
-          <Text style={styles.bigButtonSub}>Tap to tell {carerName}</Text>
+          <Text style={styles.bigButtonSub}>Tap to tell {carerName || 'your family'}</Text>
         </Pressable>
       )}
 
@@ -94,7 +94,7 @@ export default function ClockScreen({ settings, household, onOpenSettings, onChe
           style={[styles.bigButton, styles.call]}
           accessibilityRole="button"
         >
-          <Text style={styles.bigButtonText}>📞 Call {carerName}</Text>
+          <Text style={styles.bigButtonText}>📞 Call {carerName || 'family'}</Text>
         </Pressable>
       )}
     </ScrollView>
