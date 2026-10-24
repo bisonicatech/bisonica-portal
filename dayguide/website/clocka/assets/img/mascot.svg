@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024"><g transform="rotate(-28 291.2 273.6)" stroke="#1f3b73" stroke-width="14" stroke-linejoin="round">
+          <path d="M 204.8 302.4 Q 204.8 192.0 291.2 192.0 Q 377.6 192.0 377.6 302.4 Z" fill="#ffcf3a"/>
+          <circle cx="291.2" cy="177.6" r="16.8" fill="#ffcf3a"/>
+        </g>
+<g transform="rotate(28 588.8 273.6)" stroke="#1f3b73" stroke-width="14" stroke-linejoin="round">
+          <path d="M 502.4 302.4 Q 502.4 192.0 588.8 192.0 Q 675.2 192.0 675.2 302.4 Z" fill="#ffcf3a"/>
+          <circle cx="588.8" cy="177.6" r="16.8" fill="#ffcf3a"/>
+        </g>
+<rect x="428.0" y="196.8" width="24.0" height="52.8" rx="9.6" fill="#e8a817" stroke="#1f3b73" stroke-width="14"/>
+<path d="M 339.2 672.0 L 339.2 787.2" stroke="#1f3b73" stroke-width="26.4" stroke-linecap="round"/>
+<ellipse cx="310.4" cy="796.8" rx="62.4" ry="31.2" fill="#ffcf3a" stroke="#1f3b73" stroke-width="14"/>
+<path d="M 540.8 672.0 L 540.8 787.2" stroke="#1f3b73" stroke-width="26.4" stroke-linecap="round"/>
+<ellipse cx="569.6" cy="796.8" rx="62.4" ry="31.2" fill="#ffcf3a" stroke="#1f3b73" stroke-width="14"/>
+<circle cx="440" cy="480" r="240" fill="#ffcf3a" stroke="#1f3b73" stroke-width="14"/>
+<circle cx="440" cy="480" r="192.0" fill="#fffaf0" stroke="#1f3b73" stroke-width="11.2"/>
+<line x1="440.0" y1="331.2" x2="440.0" y2="302.4" stroke="#1f3b73" stroke-width="10.8" stroke-linecap="round"/>
+<line x1="521.6" y1="338.7" x2="528.8" y2="326.2" stroke="#1f3b73" stroke-width="6.0" stroke-linecap="round"/>
+<line x1="581.3" y1="398.4" x2="593.8" y2="391.2" stroke="#1f3b73" stroke-width="6.0" stroke-linecap="round"/>
+<line x1="588.8" y1="480.0" x2="617.6" y2="480.0" stroke="#1f3b73" stroke-width="10.8" stroke-linecap="round"/>
+<line x1="581.3" y1="561.6" x2="593.8" y2="568.8" stroke="#1f3b73" stroke-width="6.0" stroke-linecap="round"/>
+<line x1="521.6" y1="621.3" x2="528.8" y2="633.8" stroke="#1f3b73" stroke-width="6.0" stroke-linecap="round"/>
+<line x1="440.0" y1="628.8" x2="440.0" y2="657.6" stroke="#1f3b73" stroke-width="10.8" stroke-linecap="round"/>
+<line x1="358.4" y1="621.3" x2="351.2" y2="633.8" stroke="#1f3b73" stroke-width="6.0" stroke-linecap="round"/>
+<line x1="298.7" y1="561.6" x2="286.2" y2="568.8" stroke="#1f3b73" stroke-width="6.0" stroke-linecap="round"/>
+<line x1="291.2" y1="480.0" x2="262.4" y2="480.0" stroke="#1f3b73" stroke-width="10.8" stroke-linecap="round"/>
+<line x1="298.7" y1="398.4" x2="286.2" y2="391.2" stroke="#1f3b73" stroke-width="6.0" stroke-linecap="round"/>
+<line x1="358.4" y1="338.7" x2="351.2" y2="326.2" stroke="#1f3b73" stroke-width="6.0" stroke-linecap="round"/>
+<path d="M 348.8 393.6 Q 377.6 369.6 406.4 393.6" fill="none" stroke="#1f3b73" stroke-width="10.8" stroke-linecap="round"/>
+<path d="M 473.6 393.6 Q 502.4 369.6 531.2 393.6" fill="none" stroke="#1f3b73" stroke-width="10.8" stroke-linecap="round"/>
+<ellipse cx="377.6" cy="446.4" rx="20.4" ry="28.8" fill="#1f3b73"/>
+<circle cx="384.8" cy="436.8" r="7.2" fill="#ffffff"/>
+<circle cx="334.4" cy="499.2" r="19.2" fill="#ff9e9e" opacity="0.8"/>
+<ellipse cx="502.4" cy="446.4" rx="20.4" ry="28.8" fill="#1f3b73"/>
+<circle cx="509.6" cy="436.8" r="7.2" fill="#ffffff"/>
+<circle cx="545.6" cy="499.2" r="19.2" fill="#ff9e9e" opacity="0.8"/>
+<path d="M 368.0 494.4 Q 440.0 628.8 512.0 494.4 Z" fill="#1f3b73" stroke="#1f3b73" stroke-width="8.4" stroke-linejoin="round"/>
+      <path d="M 401.6 544.8 Q 440.0 528.0 478.4 544.8 Q 440.0 576.0 401.6 544.8 Z" fill="#e2574c"/><path d="M 660.8 504.0 Q 732.8 492.0 755.7 440.1" fill="none" stroke="#1f3b73" stroke-width="24.0" stroke-linecap="round"/><g transform="translate(520.1 48.0) scale(0.52)" stroke="#1f3b73" stroke-width="26.9" stroke-linejoin="round">
+      <rect x="318" y="520" width="104" height="246" rx="30" fill="#ffffff"/>
+      <path d="M 446 552 L 446 352 Q 446 286 506 286 Q 566 286 566 352 L 566 470 Z" fill="#ffffff"/>
+      <rect x="408" y="470" width="236" height="296" rx="54" fill="#ffffff"/>
+      <rect x="560" y="478" width="150" height="70" rx="35" fill="#ffffff"/>
+      <rect x="560" y="550" width="160" height="70" rx="35" fill="#ffffff"/>
+      <rect x="560" y="622" width="152" height="70" rx="35" fill="#ffffff"/>
+      <rect x="552" y="694" width="134" height="68" rx="34" fill="#ffffff"/>
+    </g></svg>
