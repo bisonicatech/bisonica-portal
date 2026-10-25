@@ -115,7 +115,9 @@ on its own; the family features are just hidden.
    [`0005_premium.sql`](supabase/migrations/0005_premium.sql) (free and Premium plans) and
    [`0006_delete_data.sql`](supabase/migrations/0006_delete_data.sql) (deleting a
    household from the app, and automatic deletion after 12 months unused) and
-   [`0007_faster_lookups.sql`](supabase/migrations/0007_faster_lookups.sql) (speed).
+   [`0007_faster_lookups.sql`](supabase/migrations/0007_faster_lookups.sql) (speed) and
+   [`0008_link_code_limits.sql`](supabase/migrations/0008_link_code_limits.sql)
+   (stops people guessing link codes; needs an app build from after this change).
 3. Put the project URL and the anon or publishable key (from **Project
    Settings → API Keys**) in `eas.json` for app builds, and in `.env` (copy
    `.env.example`) for running locally. Both are public values that ship

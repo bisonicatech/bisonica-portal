@@ -1,3 +1,4 @@
+import { NotificationsWarning } from './NotificationsWarning';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Settings, scheduleError, sortEntries } from './schedule';
@@ -105,6 +106,9 @@ export default function SettingsScreen({ settings, household, onSave, onClose, o
       <Text style={styles.h1}>Family settings</Text>
       {saveRow}
       {!!error && <Text style={styles.error}>{error}</Text>}
+      <View style={{ marginTop: 16 }}>
+        <NotificationsWarning why="Reminder sounds and the 'Are you okay?' check-ins won't appear. Turn notifications on for Clocka." />
+      </View>
 
       {familyEnabled && (
         <View style={[styles.card, { marginTop: 16 }]}>

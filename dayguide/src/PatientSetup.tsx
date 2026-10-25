@@ -110,6 +110,15 @@ export default function PatientSetup({ settings, onDone, onBack }: Props) {
         Stops settings being changed by accident. To open settings later, hold the time on the clock for 3 seconds and enter this PIN.
       </Text>
 
+      <View style={[form.card, { marginTop: 16 }]}>
+        <Text style={styles.h3}>🔌 Tips for this phone</Text>
+        <Text style={form.hint}>
+          • Keep it charging by the bed at night, so the clock is there when they wake.{'\n'}
+          • Allow notifications when asked, for reminder sounds and check-ins.{'\n'}
+          • Turn off Low Power Mode, which can delay reminders.
+        </Text>
+      </View>
+
       {!!error && <Text style={form.error}>{error}</Text>}
       <Button label={busy ? 'Please wait…' : 'Start'} primary disabled={busy} onPress={finish} />
       <Pressable onPress={onBack} style={{ marginTop: 24 }}>

@@ -4,6 +4,7 @@ import { DEFAULT_SETTINGS, Entry, Settings, currentEntry, fillName, scheduleErro
 import ScheduleEditor from './ScheduleEditor';
 import Paywall from './Paywall';
 import { ContactsCard, MessageCard, PlanCard } from './PremiumCards';
+import { NotificationsWarning } from './NotificationsWarning';
 import { currentPremiumUntil, purchasesEnabled, setupPurchases } from './purchases';
 import { DataCard, PrivacyScreen } from './PrivacyData';
 import { HelpLink, HelpScreen } from './HelpSupport';
@@ -184,6 +185,9 @@ export default function FamilyScreen({ settings, onSave, onChangeRole, onReset }
   return (
     <Screen>
       <Text style={form.h1}>{patient}</Text>
+      {settings.getsAlerts !== false && (
+        <NotificationsWarning why={`Clocka can't tell you if ${patient} misses a check-in while you're out. Turn notifications on for Clocka.`} />
+      )}
       {household && <PhoneStatus household={household} patient={patient} />}
       {household && <PlanCard household={household} onUpgrade={upgrade} />}
       {household && !household.patient_seen_at && <LinkCard code={code} patient={patient} startOpen />}

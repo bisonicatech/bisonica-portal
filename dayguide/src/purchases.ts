@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import * as Crypto from 'expo-crypto';
 import Purchases, { CustomerInfo, PACKAGE_TYPE, PurchasesPackage } from 'react-native-purchases';
 
 // Clocka Premium is sold through the App Store and managed with RevenueCat.
@@ -23,7 +24,10 @@ let configuredFor: string | null = null;
  */
 export async function setupPurchases(householdCode: string) {
   if (!purchasesEnabled || !householdCode) return;
-  const userId = `household_${householdCode}`;
+  // A one-way fingerprint of the household code: RevenueCat never sees the code itself,
+  // but every phone in the family still gets the same ID.
+  const hash = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, `clocka:${householdCode}`);
+  const userId = `household_${hash.slice(0, 32)}`;
   if (configuredFor === userId) return;
   if (configuredFor === null) Purchases.configure({ apiKey: KEY!, appUserID: userId });
   else await Purchases.logIn(userId);

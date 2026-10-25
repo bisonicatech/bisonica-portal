@@ -40,9 +40,14 @@ export default function ClockScreen({ settings, household, onOpenSettings, onChe
   const adhoc =
     premium && household?.adhoc_message && household.adhoc_until && new Date(household.adhoc_until) > now ? household.adhoc_message : '';
   const icon = adhoc ? '💬' : isOut ? '🏡' : entry?.icon;
-  const message = adhoc || (isOut ? household!.out_message : entry ? fillName(entry.message, settings.name) : '');
-
   const carerName = household?.carer_name || settings.carerName;
+  // If the family member is running late, "back at 3pm" would be confusing at 4pm.
+  const late = isOut && !!household?.back_at && now.getTime() > new Date(household.back_at).getTime() + 15 * 60000;
+  const outMessage = late
+    ? `${carerName || 'Your family'} will be home soon.${carerName ? ` Call ${carerName} if you need anything.` : ''}`
+    : household?.out_message ?? '';
+  const message = adhoc || (isOut ? outMessage : entry ? fillName(entry.message, settings.name) : '');
+
   const carerPhone = household?.carer_phone || settings.carerPhone;
   const showCalls = mode !== 'night' || isOut;
   // Premium: extra call buttons and a FaceTime video call button (iPhone only).

@@ -51,9 +51,29 @@ export type VideoContact = { name: string; handle: string };
 export const hasPremium = (h: Household | null | undefined) => !!h && h.is_premium !== false;
 
 export class FamilyError extends Error {
-  constructor(message: string, public kind: 'not_found' | 'missing_function' | 'network' | 'premium_required' | 'member_limit') {
+  constructor(message: string, public kind: 'not_found' | 'missing_function' | 'network' | 'premium_required' | 'member_limit' | 'too_many_attempts') {
     super(message);
   }
+}
+
+/** Turn a server error message into a FamilyError the screens can show. */
+function serverError(text: string): FamilyError {
+  if (text.includes('household_not_found')) return new FamilyError("That code wasn't found. Check it and try again.", 'not_found');
+  if (text.includes('link_code_not_found')) {
+    return new FamilyError("That link code isn't right or has run out. Get a new one on the family member's phone.", 'not_found');
+  }
+  if (text.includes('too_many_attempts')) {
+    return new FamilyError('Too many wrong codes. Please wait 15 minutes and try again.', 'too_many_attempts');
+  }
+  if (text.includes('premium_required')) return new FamilyError('This needs Clocka Premium.', 'premium_required');
+  if (text.includes('member_limit')) {
+    return new FamilyError(
+      'The free plan includes one family member. The main family member can upgrade to Premium to add more people.',
+      'member_limit',
+    );
+  }
+  if (text.includes('PGRST202')) return new FamilyError('Server needs updating.', 'missing_function');
+  return new FamilyError('Could not reach the server. Check the internet connection.', 'network');
 }
 
 async function rpc<T>(fn: string, args: Record<string, unknown>): Promise<T> {
@@ -74,22 +94,11 @@ async function rpc<T>(fn: string, args: Record<string, unknown>): Promise<T> {
     throw new FamilyError('Could not reach the server. Check the internet connection.', 'network');
   }
   const text = await res.text();
-  if (!res.ok) {
-    if (text.includes('household_not_found')) throw new FamilyError("That code wasn't found. Check it and try again.", 'not_found');
-    if (text.includes('link_code_not_found')) {
-      throw new FamilyError("That link code isn't right or has run out. Get a new one on the family member's phone.", 'not_found');
-    }
-    if (text.includes('premium_required')) throw new FamilyError('This needs Clocka Premium.', 'premium_required');
-    if (text.includes('member_limit')) {
-      throw new FamilyError(
-        'The free plan includes one family member. The main family member can upgrade to Premium to add more people.',
-        'member_limit',
-      );
-    }
-    if (text.includes('PGRST202')) throw new FamilyError('Server needs updating.', 'missing_function');
-    throw new FamilyError('Could not reach the server. Check the internet connection.', 'network');
-  }
-  return (text ? JSON.parse(text) : null) as T;
+  if (!res.ok) throw serverError(text);
+  const data = text ? JSON.parse(text) : null;
+  // Link code functions answer {"error": "..."} so the server can count wrong tries.
+  if (data && typeof data === 'object' && !Array.isArray(data) && typeof data.error === 'string') throw serverError(data.error);
+  return data as T;
 }
 
 export const createHousehold = (patientName: string, carerName: string, carerPhone: string) =>
