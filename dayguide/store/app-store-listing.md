@@ -118,12 +118,11 @@ Subscription group: **Clocka Premium** (display name: Clocka Premium)
 | Duration | 1 month | 1 year |
 | Price (UK) | £2.99 | £24.99 |
 | Introductory offer | Free trial, 1 month, new subscribers | Free trial, 1 month, new subscribers |
-| Display name | Clocka Premium | Clocka Premium (yearly) |
+| Display name | Clocka Premium (monthly) | Clocka Premium (yearly) |
 | Description | Unlimited times, family and messages | Unlimited times, family and messages |
 
-Each subscription also needs a **review screenshot** of the upgrade screen. I'll
-make one once payments are connected, because until then the screen shows
-"Subscriptions aren't available yet".
+Full step-by-step instructions, review notes and images are in
+[`subscriptions/README.md`](subscriptions/README.md).
 
 On the version page, under **In-App Purchases and Subscriptions**, add both
 subscriptions so they're reviewed with the app.
