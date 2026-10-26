@@ -20,6 +20,13 @@ $clocka_email = clocka_mod( 'clocka_email' );
 		<p class="small"><?php esc_html_e( 'In the app: open the family screen (or hold the clock time for 3 seconds on the other phone) and choose Help and support.', 'clocka' ); ?></p>
 	</div>
 
+	<div class="support-box">
+		<h2><?php esc_html_e( 'Clocka user guide', 'clocka' ); ?></h2>
+		<p><?php esc_html_e( 'A step-by-step guide for families and the person they care for: setting up both phones, planning the day, Out mode and check-ins, tips, and a large-print card to keep by the phone.', 'clocka' ); ?></p>
+		<p><a class="btn" href="<?php echo clocka_asset( 'docs/clocka-user-guide.pdf' ); ?>" download><?php esc_html_e( 'Download the user guide (PDF)', 'clocka' ); ?></a></p>
+		<p class="small"><?php esc_html_e( '15 pages, A4, about 1 MB. Print it, or keep it on your phone.', 'clocka' ); ?></p>
+	</div>
+
 	<?php
 	while ( have_posts() ) :
 		the_post();

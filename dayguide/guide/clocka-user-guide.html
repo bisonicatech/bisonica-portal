@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Clocka User Guide</title>
+<style>
+  @page { size: A4; margin: 16mm 16mm 18mm; }
+  :root { --navy: #1f3b73; --ink: #1b1f29; --muted: #505868; --line: #dfe3ea; --soft: #f3f5f9; --sun: #fff3d1; --green: #1e8e3e; --amber: #8a5a00; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin: 0; font-family: Inter, 'DejaVu Sans', sans-serif; color: var(--ink); font-size: 10.6pt; line-height: 1.45; }
+  h1, h2, h3 { font-family: 'Inter Display', Inter, sans-serif; color: var(--navy); line-height: 1.2; }
+  h2 { font-size: 20pt; margin: 0 0 3mm; }
+  h3 { font-size: 12.5pt; margin: 4.5mm 0 1.5mm; }
+  p { margin: 0 0 3mm; }
+  ul, ol { margin: 0 0 3mm; padding-left: 6mm; }
+  li { margin-bottom: 1.5mm; }
+  b, strong { font-weight: 700; }
+  .page { page-break-after: always; }
+  .page:last-child { page-break-after: auto; }
+  .kicker { text-transform: uppercase; letter-spacing: .12em; font-size: 9pt; font-weight: 700; color: var(--muted); margin-bottom: 1mm; }
+  .lead { font-size: 12.5pt; color: var(--muted); }
+  .ui { display: inline-block; background: var(--soft); border: 1px solid var(--line); border-radius: 5px; padding: 0 5px; font-weight: 600; color: var(--navy); white-space: nowrap; }
+  .row { display: flex; gap: 8mm; align-items: flex-start; }
+  .row > .text { flex: 1; }
+  .phone { width: 48mm; flex: none; border-radius: 6mm; border: 2.2mm solid #1b1f29; overflow: hidden; background: #000; box-shadow: 0 1.5mm 4mm rgba(0,0,0,.12); }
+  .phone img { display: block; width: 100%; }
+  .phone.small { width: 36mm; border-width: 1.8mm; border-radius: 5mm; }
+  .phone.tiny { width: 30mm; border-width: 1.5mm; border-radius: 4mm; }
+  .caption { font-size: 9pt; color: var(--muted); text-align: center; margin-top: 2mm; }
+  figure { margin: 0; }
+  .phones { display: flex; gap: 7mm; justify-content: center; margin: 4mm 0; }
+  .steps { counter-reset: s; list-style: none; padding: 0; }
+  .steps > li { counter-increment: s; position: relative; padding-left: 10mm; margin-bottom: 3mm; }
+  .steps > li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 6.5mm; height: 6.5mm; border-radius: 50%; background: var(--navy); color: #fff; font-weight: 700; font-size: 10pt; display: flex; align-items: center; justify-content: center; }
+  .box { border-radius: 3mm; padding: 3mm 4.5mm; margin: 3mm 0; break-inside: avoid; }
+  .box h3 { margin-top: 0; }
+  .tip { background: #eef6ef; border: 1px solid #cfe5d3; }
+  .tip .kicker { color: var(--green); }
+  .note { background: var(--sun); border: 1px solid #f0dc9e; }
+  .note .kicker { color: var(--amber); }
+  .plain { background: var(--soft); border: 1px solid var(--line); }
+  .who { display: inline-block; font-size: 8.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; padding: 1mm 3mm; border-radius: 10mm; margin-bottom: 3mm; }
+  .who.family { background: #e6ecf8; color: var(--navy); }
+  .who.person { background: var(--sun); color: var(--amber); }
+  .who.both { background: #eef6ef; color: var(--green); }
+  table { border-collapse: collapse; width: 100%; margin: 2mm 0 4mm; font-size: 10.5pt; }
+  th, td { text-align: left; vertical-align: top; padding: 1.5mm 2.5mm; border-bottom: 1px solid var(--line); }
+  th { color: var(--navy); font-weight: 700; background: var(--soft); }
+  .two { columns: 2; column-gap: 8mm; }
+  .two > * { break-inside: avoid; }
+  .qa h3 { font-size: 11.5pt; margin: 4mm 0 1mm; }
+  .footer-note { font-size: 9pt; color: var(--muted); }
+
+  /* Cover */
+  .cover { height: 263mm; display: flex; flex-direction: column; background: var(--navy); color: #fff; border-radius: 5mm; padding: 18mm 16mm; position: relative; overflow: hidden; }
+  .cover h1 { color: #fff; font-size: 44pt; margin: 0; }
+  .cover .sub { font-size: 17pt; font-weight: 600; margin: 3mm 0 10mm; color: #dfe7fb; }
+  .cover .for { font-size: 12.5pt; color: #c9d4f0; max-width: 115mm; }
+  .cover .mascot { width: 82mm; position: absolute; right: 12mm; bottom: 58mm; }
+  .cover .bottom { margin-top: auto; display: flex; gap: 6mm; align-items: flex-end; }
+  .cover .bottom .phone { width: 40mm; border-color: #0d1a36; }
+  .cover .web { margin-left: auto; text-align: right; font-size: 11pt; color: #c9d4f0; }
+  .cover .web strong { color: #fff; font-size: 14pt; display: block; }
+
+  /* Contents */
+  .toc { list-style: none; padding: 0; margin: 6mm 0; }
+  .toc li { display: flex; gap: 4mm; padding: 1.8mm 0; border-bottom: 1px solid var(--line); font-size: 12pt; }
+  .toc .n { width: 8mm; color: var(--navy); font-weight: 700; }
+  .toc .w { margin-left: auto; font-size: 9pt; }
+
+  /* Large-print card */
+  .card { border: 1.2mm solid var(--navy); border-radius: 6mm; padding: 10mm 12mm; height: 258mm; display: flex; flex-direction: column; }
+  .card h2 { font-size: 30pt; margin-bottom: 6mm; }
+  .card .big { font-size: 19pt; line-height: 1.35; margin-bottom: 7mm; }
+  .card .big b { color: var(--navy); }
+  .card .btn { display: inline-block; border-radius: 4mm; padding: 1mm 4mm; color: #fff; font-weight: 700; }
+  .card .fill { margin-top: auto; font-size: 17pt; border-top: 1px solid var(--line); padding-top: 6mm; }
+  .card .fill div { margin-bottom: 6mm; }
+  .card .fill span { display: inline-block; border-bottom: 1.5px solid #888; width: 105mm; margin-left: 3mm; }
+</style>
+</head>
+<body>
+
+<!-- Cover -->
+<section class="page">
+  <div class="cover">
+    <div class="kicker" style="color:#c9d4f0">User guide</div>
+    <h1>Clocka</h1>
+    <div class="sub">The family day clock for dementia</div>
+    <p class="for">How to set up and use Clocka, for the family and carers who help, and for the person living with dementia who uses the clock.</p>
+    <img class="mascot" src="img/mascot.png" alt="">
+    <div class="bottom">
+      <div class="phone"><img src="img/clock-morning.jpg" alt=""></div>
+      <div class="phone"><img src="img/clock-night.jpg" alt=""></div>
+      <div class="web"><strong>clocka.co.uk</strong>info@clocka.co.uk</div>
+    </div>
+  </div>
+</section>
+
+<!-- Contents -->
+<section class="page">
+  <div class="kicker">Contents</div>
+  <h2>What's in this guide</h2>
+  <ol class="toc">
+    <li><span class="n">1</span>What Clocka does<span class="w">Everyone</span></li>
+    <li><span class="n">2</span>Before you start<span class="w">Family</span></li>
+    <li><span class="n">3</span>Setting up the family member's phone<span class="w">Family</span></li>
+    <li><span class="n">4</span>Setting up the cared-for person's phone<span class="w">Family</span></li>
+    <li><span class="n">5</span>Using the clock<span class="w">Everyone</span></li>
+    <li><span class="n">6</span>Planning the day<span class="w">Family</span></li>
+    <li><span class="n">7</span>Going out: Out mode and check-ins<span class="w">Family</span></li>
+    <li><span class="n">8</span>More family members and Premium<span class="w">Family</span></li>
+    <li><span class="n">9</span>Settings on the cared-for person's phone<span class="w">Family</span></li>
+    <li><span class="n">10</span>Getting the best from Clocka<span class="w">Family</span></li>
+    <li><span class="n">11</span>Questions and problems<span class="w">Family</span></li>
+    <li><span class="n">12</span>Privacy, your data and getting help<span class="w">Everyone</span></li>
+    <li><span class="n">13</span>Large-print card to keep by the phone<span class="w">Cared-for person</span></li>
+  </ol>
+  <div class="box plain">
+    <h3>Words used in this guide</h3>
+    <p><b>The cared-for person</b> is the person living with dementia who uses the Clocka clock on their phone.</p>
+    <p><b>The family member</b> is the partner, son, daughter, friend or carer who sets Clocka up and looks after it from their own phone. In the examples, <b>David</b> is the cared-for person and <b>Carrie</b> is his wife.</p>
+    <p style="margin:0"><b>Linked</b> means the two phones are connected, so a change on one shows on the other.</p>
+  </div>
+  <div class="box note">
+    <div class="kicker">Important</div>
+    <p style="margin:0">Clocka is a daily routine and reminder app. It is not a medical device and it does not monitor anyone's health or safety. It does not replace care, supervision or emergency services. <b>In an emergency, call 999.</b></p>
+  </div>
+</section>
+
+<!-- 1 -->
+<section class="page">
+  <span class="who both">Everyone</span>
+  <div class="kicker">Section 1</div>
+  <h2>What Clocka does</h2>
+  <p class="lead">Clocka answers the question many people with dementia ask again and again: <i>what should I be doing now?</i></p>
+  <p>Clocka runs on <b>two phones</b>:</p>
+  <div class="row" style="margin-top:4mm">
+    <figure><div class="phone small"><img src="img/clock-day.jpg" alt=""></div><div class="caption">David's phone: the clock</div></figure>
+    <div class="text">
+      <h3 style="margin-top:0">The cared-for person's phone shows the clock</h3>
+      <ul>
+        <li>The time, the day and the date, in big clear letters.</li>
+        <li>Whether it's <b>morning, afternoon, evening or night-time</b>.</li>
+        <li><b>One simple message</b> for right now, like "Time for lunch".</li>
+        <li>A big button to <b>call</b> a family member.</li>
+        <li>At night it's dark and silent: "It's still night-time. Go back to bed."</li>
+      </ul>
+      <h3>The family member's phone looks after it</h3>
+      <ul>
+        <li>Plan the messages for each part of the day.</li>
+        <li>See what the clock is saying right now.</li>
+        <li><b>Out mode</b>: when you go out, the clock says where you've gone and when you'll be back.</li>
+        <li><b>Check-ins</b>: while you're out, Clocka asks "Are you okay?" and tells you if there's no answer.</li>
+      </ul>
+    </div>
+    <figure><div class="phone small"><img src="img/family-home.jpg" alt=""></div><div class="caption">Carrie's phone: the family screen</div></figure>
+  </div>
+  <div class="box tip">
+    <div class="kicker">Good to know</div>
+    <p style="margin:0">The clock works even without the family phone. If you only want the clock, you can set up the cared-for person's phone on its own and leave the link code empty. You can link the phones later.</p>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="page">
+  <span class="who family">Family</span>
+  <div class="kicker">Section 2</div>
+  <h2>Before you start</h2>
+  <h3>You will need</h3>
+  <ul>
+    <li><b>Two smartphones</b>: the cared-for person's phone and your own. Clocka is available for iPhone, and Android is coming soon.</li>
+    <li>An <b>internet connection</b> on both phones (Wi-Fi or mobile data) so they can stay linked.</li>
+    <li>About <b>10 minutes</b>, with both phones in front of you.</li>
+    <li>A <b>charger</b> for the cared-for person's phone, ideally by their bed.</li>
+  </ul>
+  <h3>Install Clocka on both phones</h3>
+  <p>On each iPhone, open the <b>App Store</b>, search for <b>Clocka</b> and tap <span class="ui">Get</span>. You'll find a link at <b>clocka.co.uk</b> too.</p>
+  <h3>Allow notifications</h3>
+  <p>The first time Clocka starts, the phone asks whether Clocka may send notifications. Tap <span class="ui">Allow</span> on <b>both</b> phones.</p>
+  <ul>
+    <li>On the cared-for person's phone, notifications give the gentle <b>reminder sounds</b> and the <b>"Are you okay?"</b> check-ins.</li>
+    <li>On your phone, they tell you if a check-in is <b>missed</b> while you're out.</li>
+  </ul>
+  <div class="box note">
+    <div class="kicker">If you tapped "Don't Allow"</div>
+    <p style="margin:0">Clocka shows a yellow card saying <b>Notifications are switched off</b>. Tap <span class="ui">Open Settings</span>, then <b>Notifications</b>, and turn on <b>Allow Notifications</b>.</p>
+  </div>
+  <h3>Choose a 4-digit PIN</h3>
+  <p>The settings on the cared-for person's phone are protected by a 4-digit PIN, so the clock can't be changed by accident. Choose a number you'll remember, but not one the cared-for person will guess. If you don't choose one, the PIN is <b>1234</b>.</p>
+</section>
+
+<!-- 3 -->
+<section class="page">
+  <span class="who family">Family</span>
+  <div class="kicker">Section 3</div>
+  <h2>Setting up the family member's phone</h2>
+  <p class="lead">Start with your own phone. It makes a short code that links the cared-for person's phone.</p>
+  <div class="row" style="margin-top:4mm">
+    <div class="text">
+      <ol class="steps">
+        <li>Open Clocka. Under <b>Who will use this phone?</b>, tap <span class="ui">A family member or carer</span>.</li>
+        <li>Tap <span class="ui">Set up for the first time</span>.</li>
+        <li>Type the <b>name of the person you care for</b>. Use the name they know best, like "David" or "Dad". It appears in messages such as "Good morning, David!"</li>
+        <li>Type <b>your name</b> and <b>your phone number</b>. The number is for the <b>Call</b> button on their clock.</li>
+        <li>Tap <span class="ui">Continue</span>.</li>
+      </ol>
+      <p>Clocka now shows a <b>6-digit link code</b>. Keep this screen open and pick up the cared-for person's phone (section 4).</p>
+      <div class="box plain">
+        <p style="margin:0">Each code works <b>once</b> and lasts <b>15 minutes</b>. If it runs out, tap <span class="ui">Get a new code</span>. You can always find it later under <b>Show a link code…</b> on your phone.</p>
+      </div>
+    </div>
+    <figure><div class="phone"><img src="img/link-code.jpg" alt=""></div><div class="caption">The link code on the family member's phone</div></figure>
+  </div>
+  <div class="box tip">
+    <div class="kicker">Tip</div>
+    <p style="margin:0">The link code is <b>not</b> the settings PIN. The link code connects the phones. The PIN protects the settings on the cared-for person's phone.</p>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="page">
+  <span class="who family">Family</span>
+  <div class="kicker">Section 4</div>
+  <h2>Setting up the cared-for person's phone</h2>
+  <div class="row" style="margin-top:2mm">
+    <div class="text">
+      <ol class="steps">
+        <li>Open Clocka on their phone. Tap <span class="ui">The person being cared for</span>.</li>
+        <li>Type <b>their first name</b>.</li>
+        <li>Under <b>Link to a family member's phone</b>, type the <b>6-digit link code</b> from your phone.</li>
+        <li>Choose a <b>4-digit settings PIN</b>.</li>
+        <li>Tap <span class="ui">Start</span>.</li>
+      </ol>
+      <p>The clock appears. On your phone, Clocka now says <b>"✓ David's phone is connected"</b>.</p>
+      <p>When you link the phones, the <b>Call</b> button uses the name and number you typed on your phone. If you don't link the phones, you can type a name and number here instead.</p>
+      <div class="box tip">
+        <div class="kicker">Tips for this phone</div>
+        <ul style="margin:0">
+          <li>Keep it <b>charging by the bed</b> at night, so the clock is there when they wake.</li>
+          <li>Allow <b>notifications</b> when asked.</li>
+          <li>Turn off <b>Low Power Mode</b>, which can delay reminders.</li>
+          <li>Leave <b>Clocka open</b>. While it's open, the screen stays on during the day. At night the phone can switch its screen off as normal.</li>
+        </ul>
+      </div>
+    </div>
+    <figure><div class="phone"><img src="img/david-setup.jpg" alt=""></div><div class="caption">Setting up the cared-for person's phone</div></figure>
+  </div>
+  <div class="box note">
+    <div class="kicker">If the code doesn't work</div>
+    <p style="margin:0">Check the 6 digits and try again, or tap <span class="ui">Get a new code</span> on your phone. After 10 wrong codes, Clocka asks you to wait 15 minutes. This stops strangers guessing codes.</p>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="page">
+  <span class="who both">Everyone</span>
+  <div class="kicker">Section 5</div>
+  <h2>Using the clock</h2>
+  <p class="lead">The clock is made to be understood at a glance, with nothing to learn. These pages explain it so you can talk it through together.</p>
+  <div class="phones">
+    <figure><div class="phone small"><img src="img/clock-morning.jpg" alt=""></div><div class="caption">Morning</div></figure>
+    <figure><div class="phone small"><img src="img/clock-day.jpg" alt=""></div><div class="caption">Daytime</div></figure>
+    <figure><div class="phone small"><img src="img/clock-night.jpg" alt=""></div><div class="caption">Night-time</div></figure>
+  </div>
+  <table>
+    <tr><th style="width:38mm">On the screen</th><th>What it means</th></tr>
+    <tr><td><b>MORNING</b>, <b>AFTERNOON</b>, <b>EVENING</b>, <b>NIGHT-TIME</b></td><td>The part of the day. The colours change too: warm yellow in the morning, light blue in the day, soft orange in the evening and dark at night.</td></tr>
+    <tr><td><b>The time and date</b></td><td>Big and clear, with the day of the week.</td></tr>
+    <tr><td><b>The picture and message</b></td><td>The one thing to do now. It changes by itself through the day.</td></tr>
+    <tr><td><span class="ui" style="background:#1f3b73;color:#fff;border-color:#1f3b73">Call Carrie</span></td><td>Phones the family member with one tap. It's hidden at night, unless the family member is out.</td></tr>
+    <tr><td><span class="ui" style="background:#1e8e3e;color:#fff;border-color:#1e8e3e">I'm okay 👍</span></td><td>Appears only when Clocka asks "Are you okay?" while the family member is out. One tap lets them know.</td></tr>
+  </table>
+  <h3>At night</h3>
+  <p>From bedtime until morning, the screen is dark and Clocka makes <b>no sounds at all</b>. If they wake at 3am, they see "It's still night-time. Everyone is asleep. Go back to bed." The Call button is hidden at night, so they're not tempted to call at 3am.</p>
+</section>
+
+<!-- 6 -->
+<section class="page">
+  <span class="who family">Family</span>
+  <div class="kicker">Section 6</div>
+  <h2>Planning the day</h2>
+  <div class="row">
+    <div class="text">
+      <p>Clocka starts with a ready-made day: get up at 7:00, breakfast, a cup of tea, lunch, dinner, get ready for bed at 9pm and night-time from 10pm. Change it to fit their routine.</p>
+      <ol class="steps">
+        <li>On your phone, tap <span class="ui">Edit David's daily schedule</span>.</li>
+        <li>For each time, set:
+          <ul>
+            <li>the <b>time</b> it starts, such as 07:30 or 21:00</li>
+            <li>the <b>message</b>, such as "Time for lunch"</li>
+            <li>a <b>picture</b>: tap the picture to choose another</li>
+            <li>the part of the day: <b>Morning</b>, <b>Day</b>, <b>Evening</b> or <b>Night (silent)</b></li>
+            <li>whether to play a <b>reminder sound</b> at that time</li>
+          </ul>
+        </li>
+        <li>Tap <span class="ui">+ Add a time</span> for more, or <b>Delete</b> to remove one.</li>
+        <li>Tap <span class="ui">Save</span>.</li>
+      </ol>
+      <p>Each message stays on the screen <b>until the next time starts</b>. Changes reach their phone within about 15 seconds while Clocka is open on it.</p>
+    </div>
+    <figure><div class="phone"><img src="img/schedule.jpg" alt=""></div><div class="caption">Editing the daily schedule</div></figure>
+  </div>
+  <div class="box plain">
+    <p style="margin:0"><b>Free plan:</b> up to 8 times a day, the same every day. <b>Premium:</b> unlimited times, and a different plan for each day of the week. For example, "Sara is coming today" only on Saturdays.</p>
+  </div>
+  <div class="box tip">
+    <div class="kicker">Writing messages that help</div>
+    <ul style="margin:0">
+      <li><b>Short and simple</b>: one thing at a time. "Time for lunch" works better than a list.</li>
+      <li><b>Say what to do</b>, not what not to do: "Go back to bed" rather than "Don't get up".</li>
+      <li><b>Use their words</b>: "cuppa", "the paper", their dog's name.</li>
+      <li><b>Be warm</b>: type <b>{name}</b> straight after a word and Clocka puts their name in. "Good morning{name}!" shows as "Good morning, David!"</li>
+      <li>Mark night times <b>Night (silent)</b>, so nothing ever makes a sound at night.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 7 -->
+<section class="page">
+  <span class="who family">Family</span>
+  <div class="kicker">Section 7</div>
+  <h2>Going out: Out mode and check-ins</h2>
+  <p class="lead">Popping to the shops? Out mode tells them where you are, and check-ins tell you they're okay.</p>
+  <h3>Starting Out mode</h3>
+  <ol class="steps">
+    <li>On your phone, scroll to <b>Going out?</b></li>
+    <li>Type when you'll be <b>back by</b>, such as "3pm" or "15:30".</li>
+    <li>Choose how often to ask <b>"Are you okay?"</b>: every 30 minutes, 1 hour or 2 hours.</li>
+    <li>Check the <b>message</b> they'll see, then tap <span class="ui">Start Out mode</span>.</li>
+  </ol>
+  <div class="phones">
+    <figure><div class="phone tiny"><img src="img/out-on.jpg" alt=""></div><div class="caption">Your phone while you're out</div></figure>
+    <figure><div class="phone tiny"><img src="img/clock-out.jpg" alt=""></div><div class="caption">Their clock while you're out</div></figure>
+    <figure><div class="phone tiny"><img src="img/clock-checkin.jpg" alt=""></div><div class="caption">Time for a check-in</div></figure>
+  </div>
+  <h3>How check-ins work</h3>
+  <ol>
+    <li>At each check-in time, their phone shows <b>"Are you okay, David?"</b> and the green <span class="ui" style="background:#1e8e3e;color:#fff;border-color:#1e8e3e">I'm okay 👍</span> button appears on the clock.</li>
+    <li>When they tap it, your phone shows the time of the last <b>"I'm okay"</b>.</li>
+    <li>If there's <b>no answer within 15 minutes</b>, your phone gets an alert: "David hasn't answered the check-in". It's a good moment to give them a call.</li>
+  </ol>
+  <h3>Coming home</h3>
+  <p>Tap <span class="ui" style="background:#1e8e3e;color:#fff;border-color:#1e8e3e">I'm home</span> and the clock goes back to the normal day. If you're more than 15 minutes late, the clock stops showing your "back at" time. It says <b>"Carrie will be home soon. Call Carrie if you need anything."</b> instead.</p>
+  <div class="box note">
+    <div class="kicker">Please remember</div>
+    <p style="margin:0">Check-ins need both phones to be switched on, with notifications and internet. A missed check-in may simply mean they didn't hear the phone. Clocka can't tell you why someone hasn't answered, and it doesn't replace care or supervision. Only the family member who set Clocka up receives missed check-in alerts.</p>
+  </div>
+</section>
+
+<!-- 8 -->
+<section class="page">
+  <span class="who family">Family</span>
+  <div class="kicker">Section 8</div>
+  <h2>More family members and Premium</h2>
+  <h3>Adding another family member (Premium)</h3>
+  <p>Brothers, sisters, children and friends can all follow along on their own phones. They can see what the clock says, edit the schedule and turn on Out mode.</p>
+  <ol class="steps">
+    <li>On <b>your</b> phone, tap <span class="ui">Show a link code…</span></li>
+    <li>On <b>their</b> phone, open Clocka, tap <span class="ui">A family member or carer</span>, then <span class="ui">I have a code</span>.</li>
+    <li>They type <b>their name</b> and the <b>6-digit code</b>, then tap <span class="ui">Continue</span>.</li>
+  </ol>
+  <h3>Free and Premium</h3>
+  <table>
+    <tr><th></th><th style="width:48mm">Free</th><th style="width:58mm">Premium</th></tr>
+    <tr><td>Clock, messages, silent nights</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>Times in the daily plan</td><td>Up to 8, the same every day</td><td>Unlimited, different on each day of the week</td></tr>
+    <tr><td>Family members</td><td>1</td><td>Unlimited</td></tr>
+    <tr><td>Out mode and check-ins</td><td>Yes, with the standard message</td><td>Yes, and you can write your own message</td></tr>
+    <tr><td>One-off messages to their screen</td><td>–</td><td>Yes, e.g. "Sara is coming at 2pm"</td></tr>
+    <tr><td>Call buttons</td><td>1</td><td>Extra call buttons and a FaceTime video call button</td></tr>
+  </table>
+  <p><b>Premium costs £2.99 a month or £24.99 a year</b>, with a <b>1-month free trial</b>. One subscription covers the whole family: everyone linked to the same cared-for person gets Premium. To start, tap <span class="ui">Try Premium free for a month</span> on the family screen.</p>
+  <p class="footer-note">Subscriptions are paid through your Apple ID and renew automatically unless cancelled at least 24 hours before the end of the period. To cancel, open iPhone <b>Settings</b>, tap your name, then <b>Subscriptions</b>. If you change phones, tap <span class="ui">Restore purchases</span> on the Premium screen.</p>
+  <h3>Premium extras</h3>
+  <ul>
+    <li><b>Send a message to their screen</b>: type it, choose how long to show it, and tap <span class="ui">Send to their screen</span>.</li>
+    <li><b>Extra call buttons</b>: add more people they can call with one tap. Your own button is always there.</li>
+    <li><b>Video call button</b>: one tap starts a FaceTime call. Use the other person's iPhone number or Apple ID email.</li>
+  </ul>
+</section>
+
+<!-- 9 -->
+<section class="page">
+  <span class="who family">Family</span>
+  <div class="kicker">Section 9</div>
+  <h2>Settings on the cared-for person's phone</h2>
+  <div class="row">
+    <div class="text">
+      <p>There are no buttons for settings on the clock, so it can't be changed by accident.</p>
+      <ol class="steps">
+        <li><b>Press and hold the time</b> on the clock for <b>3 seconds</b>.</li>
+        <li>Type the <b>4-digit PIN</b>.</li>
+      </ol>
+      <p>In <b>Family settings</b> you can:</p>
+      <ul>
+        <li><b>link</b> to a family member's phone, or link again with a new code</li>
+        <li>change their <b>name</b>, the <b>Call</b> button's name and number, and the <b>PIN</b></li>
+        <li>edit the <b>daily schedule</b> (it's easier from your own phone)</li>
+        <li>read <b>Help and support</b> and the <b>privacy</b> summary</li>
+        <li><b>remove Clocka</b> from this phone</li>
+      </ul>
+      <p>Tap <span class="ui">Save</span> when you've finished, or <span class="ui">Cancel</span> to leave things as they were.</p>
+      <div class="box note">
+        <div class="kicker">Forgotten the PIN?</div>
+        <p style="margin:0">Uninstall Clocka from the phone and install it again, then link it with a new code. If it was linked, the daily plan comes back from the family phone.</p>
+      </div>
+    </div>
+    <figure><div class="phone"><img src="img/david-settings.jpg" alt=""></div><div class="caption">Family settings on the cared-for person's phone</div></figure>
+  </div>
+</section>
+
+<!-- 10 -->
+<section class="page">
+  <span class="who family">Family</span>
+  <div class="kicker">Section 10</div>
+  <h2>Getting the best from Clocka</h2>
+  <h3>Introducing Clocka</h3>
+  <ul>
+    <li>Show them the clock together, while they're calm. Read the message aloud: "It says it's time for a cup of tea."</li>
+    <li>Point to the clock when they ask what to do: "Let's see what Clocka says."</li>
+    <li>Give it a week or two. Routines take time to become familiar.</li>
+    <li>Print the <b>large-print card</b> at the end of this guide and keep it by the phone.</li>
+  </ul>
+  <h3>Keep the phone ready</h3>
+  <ul>
+    <li>Keep it on <b>charge by the bed</b> at night, and somewhere they'll see it during the day.</li>
+    <li>Keep <b>Clocka open</b> on the screen. Swiping away from it is easy, so consider <b>Guided Access</b> (below).</li>
+    <li>Make sure the <b>volume</b> is up and the <b>ring/silent switch</b> is off if you want reminder sounds.</li>
+    <li>Leave <b>Low Power Mode</b> off.</li>
+  </ul>
+  <div class="box tip">
+    <div class="kicker">Tip: keep the phone on Clocka with Guided Access (iPhone)</div>
+    <p>Guided Access is part of the iPhone. It keeps the phone in one app until you enter a passcode.</p>
+    <ol style="margin:0">
+      <li>Open iPhone <b>Settings</b>, then <b>Accessibility</b>, then <b>Guided Access</b>, and turn it on. Set a passcode.</li>
+      <li>Open Clocka, then quickly <b>press the side button three times</b> and tap <b>Start</b>.</li>
+      <li>To finish, press the side button three times and enter the passcode.</li>
+    </ol>
+    <p style="margin:2mm 0 0" class="footer-note">With Guided Access on, notification banners may not appear. Check-ins still work, because the I'm okay button appears on the clock itself. Try a day with it on to check the reminder sounds suit you.</p>
+  </div>
+  <h3>Check the screen from your phone</h3>
+  <p>The family screen shows <b>"Right now David's screen says…"</b> and whether their phone is connected. If it says the phone hasn't connected for a while, it may be switched off, out of charge, offline, or Clocka may be closed.</p>
+</section>
+
+<!-- 11 -->
+<section class="page qa">
+  <span class="who family">Family</span>
+  <div class="kicker">Section 11</div>
+  <h2>Questions and problems</h2>
+  <div class="two">
+    <div>
+      <h3>My changes aren't showing on their phone.</h3>
+      <p>Clocka needs to be open on their phone, with internet. Changes usually arrive within 15 seconds. Check your phone says "✓ David's phone is connected".</p>
+    </div>
+    <div>
+      <h3>There are no reminder sounds.</h3>
+      <p>Check notifications are allowed, the volume is up, the ring/silent switch isn't on silent, and <b>Reminder sound at this time</b> is on for that time. Night times never make a sound.</p>
+    </div>
+    <div>
+      <h3>I didn't get a missed check-in alert.</h3>
+      <p>Alerts go to the family member who set Clocka up. Check that notifications are on for Clocka on your phone and that both phones have internet.</p>
+    </div>
+    <div>
+      <h3>The link code doesn't work.</h3>
+      <p>Codes work once and last 15 minutes. Tap <b>Get a new code</b>. After 10 wrong tries, wait 15 minutes.</p>
+    </div>
+    <div>
+      <h3>The clock says it's morning, but it's still dark outside.</h3>
+      <p>Edit the schedule so that "Morning" starts later, or add a later night-time message, such as one at 5:00 saying "It's still night-time. Go back to bed."</p>
+    </div>
+    <div>
+      <h3>They keep closing the app.</h3>
+      <p>Use Guided Access (section 10) to keep the phone on Clocka.</p>
+    </div>
+    <div>
+      <h3>Does the clock work without internet?</h3>
+      <p>Yes. The clock, messages and reminder sounds keep working. Linking, Out mode, check-ins and changes from the family phone need internet.</p>
+    </div>
+    <div>
+      <h3>They have a new phone.</h3>
+      <p>Install Clocka on the new phone, choose <b>The person being cared for</b>, and link it with a new code from your phone. The daily plan comes across.</p>
+    </div>
+    <div>
+      <h3>I want to set up Clocka again from the start.</h3>
+      <p>In settings, tap <b>Change what this phone is for…</b>, or remove Clocka from the phone and install it again.</p>
+    </div>
+    <div>
+      <h3>Can more than one person look after the clock?</h3>
+      <p>Yes, with Premium. See section 8.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 12 -->
+<section class="page">
+  <span class="who both">Everyone</span>
+  <div class="kicker">Section 12</div>
+  <h2>Privacy, your data and getting help</h2>
+  <h3>Your privacy</h3>
+  <ul>
+    <li>Clocka has <b>no adverts</b>, does <b>no tracking</b> and <b>never sells data</b>.</li>
+    <li>It keeps only what it needs: first names, the phone numbers for the Call buttons, the daily plan, and Out mode and check-in times. These are stored on a secure server in London so the phones can share them.</li>
+    <li>On the family screen, tap <b>What Clocka keeps and why</b> for a summary. The full privacy policy is at <b>clocka.co.uk/privacy</b>.</li>
+  </ul>
+  <h3>Deleting your data</h3>
+  <ul>
+    <li><b>The family member who set Clocka up</b> can tap <b>Delete all of David's Clocka data…</b> on the family screen. This removes everything from the server straight away and unlinks every phone.</li>
+    <li><b>Anyone else</b> can tap <b>Remove Clocka from this phone…</b>. This removes Clocka from their phone only.</li>
+    <li>Families that don't use Clocka for <b>12 months</b> are deleted automatically.</li>
+  </ul>
+  <h3>Help with Clocka</h3>
+  <p>Email <b>info@clocka.co.uk</b> or visit <b>clocka.co.uk/support</b>. In the app, tap <b>Help and support</b>.</p>
+  <h3>Help with dementia and caring</h3>
+  <table>
+    <tr><th style="width:50mm">Organisation</th><th>How they help</th><th style="width:32mm">Phone</th></tr>
+    <tr><td><b>Alzheimer's Society</b><br><span class="footer-note">alzheimers.org.uk</span></td><td>Dementia Support Line: information, advice and emotional support for anyone affected by dementia.</td><td>0333 150 3456</td></tr>
+    <tr><td><b>Dementia UK</b><br><span class="footer-note">dementiauk.org</span></td><td>Admiral Nurse Dementia Helpline: free advice from specialist dementia nurses.</td><td>0800 888 6678</td></tr>
+    <tr><td><b>Carers UK</b><br><span class="footer-note">carersuk.org</span></td><td>Advice and support for the person doing the caring.</td><td>0808 808 7777</td></tr>
+    <tr><td><b>Age UK</b><br><span class="footer-note">ageuk.org.uk</span></td><td>Advice Line for older people and their families: care, money and practical help.</td><td>0800 678 1602</td></tr>
+    <tr><td><b>NHS</b><br><span class="footer-note">nhs.uk/conditions/dementia</span></td><td>Living with dementia, getting a diagnosis, and care and support.</td><td>111 (non-urgent)</td></tr>
+  </table>
+  <div class="box note">
+    <p style="margin:0"><b>In an emergency, call 999.</b> For urgent medical help that isn't an emergency, call 111.</p>
+  </div>
+  <p class="footer-note">Opening hours and numbers can change. Please check each organisation's website. Clocka is not connected to these organisations.</p>
+</section>
+
+<!-- 13: large print card -->
+<section class="page">
+  <div class="card">
+    <div class="kicker">Section 13 · Cut out or print this page and keep it by the phone</div>
+    <h2>Your Clocka phone</h2>
+    <div class="big">This phone tells you <b>the time</b> and <b>what to do now</b>.</div>
+    <div class="big">If it says <b>NIGHT-TIME</b>, it's still night. <b>Go back to bed.</b> Everyone is asleep.</div>
+    <div class="big">To phone your family, press the blue <span class="btn" style="background:#1f3b73">Call</span> button.</div>
+    <div class="big">If it asks <b>"Are you okay?"</b>, press the green <span class="btn" style="background:#1e8e3e">I'm okay</span> button.</div>
+    <div class="big">Please keep this phone <b>here</b>, on its charger.</div>
+    <div class="fill">
+      <div>My name:<span></span></div>
+      <div>My family:<span></span></div>
+      <div>Their phone:<span></span></div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
