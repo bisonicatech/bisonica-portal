@@ -37,7 +37,9 @@ Free for everyone. Safety features are never behind Premium.
 
 ## Before launch (1.0) — outstanding
 
-- Connect RevenueCat (needs the `appl_` public key) and verify subscriptions on the server (RevenueCat webhook), instead of trusting the phone (`dg_set_premium`).
+- Security (see SECURITY.md): run `0009_security.sql`, rebuild, open Clocka on every phone, then run `0010_drop_legacy_codes.sql`.
+- Connect RevenueCat (needs the `appl_` public key) and deploy the `revenuecat-webhook` Edge Function (Premium is now set only by it).
+- After App Store approval: delete the demo family (SQL in `store/app-store-listing.md`).
 - Subscription review screenshot, final build, App Store submission.
 - Link to the user guide from the in-app Help screen.
 - Android: Play Console, Firebase push, closed test (12 testers for 14 days).

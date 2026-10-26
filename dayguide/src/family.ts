@@ -11,6 +11,8 @@ const KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 export const familyEnabled = !!(URL && KEY);
 
 export type Household = {
+  /** Not a secret; used as the RevenueCat customer ID. Missing before 0009_security.sql. */
+  id?: string;
   code: string;
   patient_name: string;
   carer_name: string;
@@ -63,7 +65,7 @@ function serverError(text: string): FamilyError {
     return new FamilyError("That link code isn't right or has run out. Get a new one on the family member's phone.", 'not_found');
   }
   if (text.includes('too_many_attempts')) {
-    return new FamilyError('Too many wrong codes. Please wait 15 minutes and try again.', 'too_many_attempts');
+    return new FamilyError('Too many tries. Please wait 15 minutes and try again.', 'too_many_attempts');
   }
   if (text.includes('premium_required')) return new FamilyError('This needs Clocka Premium.', 'premium_required');
   if (text.includes('member_limit')) {
@@ -117,18 +119,18 @@ export async function getHouseholdAsPatient(code: string): Promise<Household> {
   }
 }
 
-/** Family member's phone: a new single-use 6-digit code for linking the cared-for phone (lasts 15 minutes). */
+/** Family member's phone: a new single-use 8-digit code for linking the cared-for phone (lasts 15 minutes). */
 export const newLinkCode = (code: string) =>
   rpc<{ link_code: string; expires_at: string }>('dg_new_link_code', { p_code: code });
 
-/** Cared-for person's phone: swap a 6-digit link code for the household. */
+/** Cared-for person's phone: swap a 8-digit link code for the household. */
 export const redeemLinkCode = (linkCode: string) => rpc<Household>('dg_use_link_code', { p_link_code: linkCode });
 
 /** Either phone: replace the shared daily schedule. */
 export const setSchedule = (code: string, entries: Entry[]) =>
   rpc<Household>('dg_set_schedule', { p_code: code, p_schedule: entries });
 
-/** Another family member joins with a 6-digit link code (Premium allows more than one). */
+/** Another family member joins with a 8-digit link code (Premium allows more than one). */
 export async function joinFamily(linkCode: string, name: string): Promise<Household> {
   try {
     return await rpc<Household>('dg_join_family', { p_link_code: linkCode, p_name: name });

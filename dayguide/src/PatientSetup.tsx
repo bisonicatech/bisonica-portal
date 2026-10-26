@@ -29,7 +29,7 @@ export default function PatientSetup({ settings, onDone, onBack }: Props) {
     let next: Settings = { ...settings, name: name.trim(), carerName: carerName.trim(), carerPhone: carerPhone.trim(), pin };
 
     if (linking) {
-      if (!/^\d{6}$/.test(linkCode)) return setError('The link code is 6 digits.');
+      if (!/^\d{8}$/.test(linkCode)) return setError('The link code is 8 digits.');
       setBusy(true);
       try {
         const h = await redeemLinkCode(linkCode);
@@ -63,7 +63,7 @@ export default function PatientSetup({ settings, onDone, onBack }: Props) {
         <View style={[form.card, { marginTop: 12 }]}>
           <Text style={styles.h3}>Link to a family member's phone (optional)</Text>
           <Text style={form.hint}>
-            If a family member has Clocka, they choose "A family member or carer" and get a 6-digit link code. Type it here. You can
+            If a family member has Clocka, they choose "A family member or carer" and get an 8-digit link code. Type it here. You can
             also do this later.
           </Text>
           <TextInput
@@ -71,11 +71,11 @@ export default function PatientSetup({ settings, onDone, onBack }: Props) {
             value={linkCode}
             onChangeText={(t) => {
               setError('');
-              setLinkCode(t.replace(/\D/g, '').slice(0, 6));
+              setLinkCode(t.replace(/\D/g, '').slice(0, 8));
             }}
             keyboardType="number-pad"
-            maxLength={6}
-            placeholder="123 456"
+            maxLength={8}
+            placeholder="12345678"
             {...doneProps}
           />
         </View>

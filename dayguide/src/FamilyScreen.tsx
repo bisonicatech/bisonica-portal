@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { DEFAULT_SETTINGS, Entry, Settings, currentEntry, fillName, scheduleError, sortEntries } from './schedule';
 import ScheduleEditor from './ScheduleEditor';
 import Paywall from './Paywall';
 import { ContactsCard, MessageCard, PlanCard } from './PremiumCards';
 import { NotificationsWarning } from './NotificationsWarning';
-import { currentPremiumUntil, purchasesEnabled, setupPurchases } from './purchases';
 import { DataCard, PrivacyScreen } from './PrivacyData';
 import { HelpLink, HelpScreen } from './HelpSupport';
 import {
@@ -19,7 +18,6 @@ import {
   getHousehold,
   hasPremium,
   joinFamily,
-  setPremium,
   newLinkCode,
   registerForPush,
   setSchedule,
@@ -69,6 +67,9 @@ const outMessage = (carer: string, back: Date | null) =>
 
 export default function FamilyScreen({ settings, onSave, onChangeRole, onReset }: Props) {
   const code = settings.householdCode;
+  // Latest props for async work, so refresh doesn't restart on every change.
+  const latest = useRef({ settings, onSave });
+  latest.current = { settings, onSave };
   const [household, setHousehold] = useState<Household | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -77,21 +78,14 @@ export default function FamilyScreen({ settings, onSave, onChangeRole, onReset }
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
 
-  // If this household has a subscription in the App Store (e.g. bought on another
-  // family member's phone, or renewed), make sure the server knows.
-  useEffect(() => {
-    if (!code || !purchasesEnabled) return;
-    setupPurchases(code)
-      .then(currentPremiumUntil)
-      .then((until) => (until && until > new Date() ? setPremium(code, until).then(setHousehold) : undefined))
-      .catch(() => {});
-  }, [code]);
-
   const refresh = useCallback(async () => {
     if (!code) return;
     try {
-      setHousehold(await getHousehold(code));
+      const h = await getHousehold(code);
+      setHousehold(h);
       setError('');
+      // The server gave this family a new, longer code: remember it.
+      if (h.code && h.code !== code) latest.current.onSave({ ...latest.current.settings, householdCode: h.code });
     } catch (e) {
       // The household was deleted (e.g. from another family phone): start again.
       if (e instanceof FamilyError && e.kind === 'not_found') return onReset();
@@ -155,6 +149,7 @@ export default function FamilyScreen({ settings, onSave, onChangeRole, onReset }
     return (
       <Paywall
         code={code}
+        householdId={household?.id ?? ''}
         patient={patient}
         onClose={() => setShowPaywall(false)}
         onPremium={(h) => {
@@ -361,7 +356,7 @@ function LinkCard({ code, patient, startOpen }: { code: string; patient: string;
   }
 
   const expired = !!link && new Date(link.expires_at).getTime() <= now;
-  const shown = legacy ? code : link ? `${link.link_code.slice(0, 3)} ${link.link_code.slice(3)}` : '… …';
+  const shown = legacy ? code : link ? `${link.link_code.slice(0, 4)} ${link.link_code.slice(4)}` : '… …';
 
   return (
     <View style={[form.card, { marginTop: 16 }]}>
@@ -518,9 +513,13 @@ function Setup({ settings, onSave, onChangeRole }: Omit<Props, 'onReset'>) {
       const h =
         mode === 'new'
           ? await createHousehold(patient, carer, phone)
-          : /^\d{6}$/.test(code)
+          : /^\d{8}$/.test(code)
             ? await joinFamily(code, carer)
-            : await getHousehold(code);
+            : null;
+      if (!h) {
+        setBusy(false);
+        return setError('The link code is 8 digits.');
+      }
       // The phone that sets things up gets the alerts; family members who join with a code don't.
       onSave({
         ...settings,
@@ -563,17 +562,17 @@ function Setup({ settings, onSave, onChangeRole }: Omit<Props, 'onReset'>) {
         <>
           <Text style={form.label}>Your name</Text>
           <TextInput style={form.input} value={carer} onChangeText={setCarer} placeholder="e.g. Sarah" autoCapitalize="words" {...doneProps} />
-          <Text style={form.label}>6-digit link code from the main family member's Clocka</Text>
+          <Text style={form.label}>8-digit link code from the main family member's Clocka</Text>
           <TextInput
             style={form.input}
             value={code}
-            onChangeText={(t) => setCode(t.replace(/[^0-9a-z]/gi, '').toUpperCase())}
+            onChangeText={(t) => setCode(t.replace(/\D/g, '').slice(0, 8))}
             keyboardType="number-pad"
             autoCapitalize="characters"
             autoCorrect={false}
             spellCheck={false}
-            maxLength={10}
-            placeholder="123 456"
+            maxLength={8}
+            placeholder="12345678"
             {...doneProps}
           />
           <Text style={form.hint}>

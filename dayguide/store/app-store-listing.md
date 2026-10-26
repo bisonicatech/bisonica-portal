@@ -137,16 +137,33 @@ subscriptions so they're reviewed with the app.
 
 > Clocka has no accounts or logins. It is a day clock for people living with dementia, plus a companion mode for their family.
 >
-> To try the family features on one device: open Clocka, choose "A family member or carer", then "I have a code". Enter any name and the demo family code 2468013579, then tap Continue. You'll see the demo family "Margaret" with Premium enabled: you can edit the daily schedule, start Out mode, send a message to Margaret's screen, and add call buttons.
+> To try the family features on one device: open Clocka, choose "A family member or carer", then "I have a code". Enter any name and the demo link code 24681357, then tap Continue. You'll see the demo family "Margaret" with Premium enabled: you can edit the daily schedule, start Out mode, send a message to Margaret's screen, and add call buttons.
 >
-> To see the clock that the person being cared for uses: delete and reinstall the app (or use a second device), choose "The person being cared for", type any name, leave the link code empty and tap Start. The settings PIN is 1234 (hold the time on the clock for 3 seconds to open settings).
+> To see the clock that the person being cared for uses: delete and reinstall the app (or use a second device), choose "The person being cared for", type any name, and either enter the demo link code 24681357 (to link it to the demo family) or leave it empty, then tap Start. The settings PIN is 1234 (hold the time on the clock for 3 seconds to open settings).
 >
 > Premium is an auto-renewing subscription (£2.99/month or £24.99/year, 1-month free trial) that covers every phone linked to a family. Help and support, the privacy summary and data deletion are on the family screen.
 
-Before submitting, create the demo family in Supabase (SQL Editor):
+Before submitting, create the demo family in Supabase (SQL Editor). This needs
+`0009_security.sql` to have been run. It removes any earlier demo family first, so
+it's safe to run again (for example if a reviewer deletes the demo family).
 
 ```sql
-insert into dg_households (code, patient_name, carer_name, carer_phone, comp)
-values ('2468013579', 'Margaret', 'Sam', '', true)
-on conflict (code) do nothing;
+delete from dg_households
+ where code = '2468013579' or legacy_code = '2468013579'
+    or id in (select household_id from dg_link_codes where link_code = '24681357');
+
+with h as (
+  insert into dg_households (code, patient_name, carer_name, carer_phone, comp)
+  values (dg_new_code(), 'Margaret', 'Sam', '', true)
+  returning id
+)
+insert into dg_link_codes (link_code, household_id, expires_at, reusable)
+select '24681357', id, now() + interval '1 year', true from h;
+```
+
+**After the app is approved**, remove the demo family so nobody else can use the code:
+
+```sql
+delete from dg_households
+ where id in (select household_id from dg_link_codes where link_code = '24681357');
 ```

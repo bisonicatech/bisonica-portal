@@ -81,7 +81,7 @@ Upload `clocka-premium-promo-1024.png`. It's only used if you promote the subscr
 >
 > To reach the purchase screen: open Clocka, choose "A family member or carer", then "Set up for the first time", enter any two names and tap Continue. Then tap "Free plan · Try Premium free for a month".
 >
-> The demo family code in the app review notes (2468013579) already has Premium enabled, so all Premium features can be tried without buying.
+> The demo family in the app review notes (link code 24681357) already has Premium enabled, so all Premium features can be tried without buying.
 
 ### Family Sharing
 Leave **off**. Once turned on it can never be turned off, and Clocka already shares Premium with every linked family phone.

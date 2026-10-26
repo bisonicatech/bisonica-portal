@@ -1,5 +1,4 @@
 import { Platform } from 'react-native';
-import * as Crypto from 'expo-crypto';
 import Purchases, { CustomerInfo, PACKAGE_TYPE, PurchasesPackage } from 'react-native-purchases';
 
 // Clocka Premium is sold through the App Store and managed with RevenueCat.
@@ -20,14 +19,12 @@ let configuredFor: string | null = null;
 
 /**
  * Set up purchases for a household. The subscription belongs to the household,
- * so any of its family members' phones can see and restore it.
+ * so any of its family members' phones can see and restore it. RevenueCat only
+ * gets the household's internal ID, never the family code.
  */
-export async function setupPurchases(householdCode: string) {
-  if (!purchasesEnabled || !householdCode) return;
-  // A one-way fingerprint of the household code: RevenueCat never sees the code itself,
-  // but every phone in the family still gets the same ID.
-  const hash = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, `clocka:${householdCode}`);
-  const userId = `household_${hash.slice(0, 32)}`;
+export async function setupPurchases(householdId: string) {
+  if (!purchasesEnabled || !householdId) return;
+  const userId = `household_${householdId}`;
   if (configuredFor === userId) return;
   if (configuredFor === null) Purchases.configure({ apiKey: KEY!, appUserID: userId });
   else await Purchases.logIn(userId);
@@ -60,11 +57,6 @@ export async function buy(pkg: PurchasesPackage): Promise<Date | null> {
 
 export async function restore(): Promise<Date | null> {
   return premiumUntil(await Purchases.restorePurchases());
-}
-
-export async function currentPremiumUntil(): Promise<Date | null> {
-  if (!purchasesEnabled || !configuredFor) return null;
-  return premiumUntil(await Purchases.getCustomerInfo());
 }
 
 /** True when the person closed the App Store sheet without buying. */

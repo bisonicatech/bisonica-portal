@@ -54,7 +54,7 @@ $clocka_trial = clocka_mod( 'clocka_trial' );
 			</div>
 			<div class="step">
 				<h3><?php esc_html_e( 'Link your phone', 'clocka' ); ?></h3>
-				<p><?php esc_html_e( 'Install Clocka on yours, choose "family member", and type the 6-digit code into their phone. That\'s it.', 'clocka' ); ?></p>
+				<p><?php esc_html_e( 'Install Clocka on yours, choose "family member", and type the 8-digit code into their phone. That\'s it.', 'clocka' ); ?></p>
 			</div>
 			<div class="step">
 				<h3><?php esc_html_e( 'Plan their day', 'clocka' ); ?></h3>

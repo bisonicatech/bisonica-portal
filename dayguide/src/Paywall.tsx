@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { PurchasesPackage } from 'react-native-purchases';
-import { Household, setPremium } from './family';
+import { Household, getHousehold, setPremium } from './family';
 import { PRIVACY_URL, TERMS_URL, buy, getPlans, purchasesEnabled, restore, setupPurchases, wasCancelled, type Plans } from './purchases';
 import { Button, Screen, form } from './ui';
 
 type Props = {
   code: string;
+  /** The household's internal ID, used as the RevenueCat customer ID. */
+  householdId: string;
   patient: string;
   onClose: () => void;
   onPremium: (h: Household) => void;
@@ -20,22 +22,35 @@ const FEATURES = [
   ['🎥', 'Video call button', 'one tap to FaceTime one person'],
 ];
 
-export default function Paywall({ code, patient, onClose, onPremium }: Props) {
+export default function Paywall({ code, householdId, patient, onClose, onPremium }: Props) {
   const [plans, setPlans] = useState<Plans | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [waiting, setWaiting] = useState(false);
 
   useEffect(() => {
-    if (!purchasesEnabled) return;
-    setupPurchases(code)
+    if (!purchasesEnabled || !householdId) return;
+    setupPurchases(householdId)
       .then(getPlans)
       .then(setPlans)
       .catch(() => setError("Couldn't load prices from the App Store. Check the internet connection and try again."));
-  }, [code]);
+  }, [householdId]);
 
   const finish = async (until: Date | null) => {
     if (!until) return setError('No active Clocka Premium subscription was found.');
-    onPremium(await setPremium(code, until));
+    // Older servers record Premium here; newer ones ignore this and wait for RevenueCat.
+    let h = await setPremium(code, until);
+    // Clocka's server hears about the purchase from RevenueCat, usually within seconds.
+    setWaiting(true);
+    for (let i = 0; i < 15 && h.is_premium === false; i++) {
+      await new Promise((r) => setTimeout(r, 2000));
+      h = await getHousehold(code).catch(() => h);
+    }
+    setWaiting(false);
+    if (h.is_premium === false) {
+      return setError('Thank you! Your purchase went through. Premium will switch on within a few minutes.');
+    }
+    onPremium(h);
   };
 
   const purchase = async (pkg: PurchasesPackage) => {
@@ -105,6 +120,7 @@ export default function Paywall({ code, patient, onClose, onPremium }: Props) {
             </Pressable>
           )}
           {busy && <ActivityIndicator style={{ marginTop: 12 }} />}
+          {waiting && <Text style={form.hint}>Switching on Premium…</Text>}
         </>
       )}
 

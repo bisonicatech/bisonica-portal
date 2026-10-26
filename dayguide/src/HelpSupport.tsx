@@ -47,7 +47,7 @@ const ORGS: Org[] = [
 const ANSWERS: [string, string][] = [
   [
     'Linking the two phones',
-    'On the family phone, tap "Show a link code". On the other phone, hold the clock time for 3 seconds, enter the PIN, type the 6-digit code and tap Save. Codes last 15 minutes.',
+    'On the family phone, tap "Show a link code". On the other phone, hold the clock time for 3 seconds, enter the PIN, type the 8-digit code and tap Save. Codes last 15 minutes.',
   ],
   ['Forgotten the settings PIN', 'Delete Clocka from that phone and install it again, then link it to the family phone again. The shared schedule comes back.'],
   ['Cancelling Premium', "On the iPhone, open Settings, tap your name, then Subscriptions, then Clocka. On Android, open Google Play › Payments & subscriptions."],

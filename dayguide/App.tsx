@@ -68,6 +68,11 @@ export default function App() {
     try {
       const h = await getHouseholdAsPatient(code);
       setHousehold(h);
+      // The server gave this family a new, longer code: remember it.
+      if (h.code && h.code !== settingsRef.current.householdCode) {
+        await persist({ ...settingsRef.current, householdCode: h.code });
+        return;
+      }
       if (h.schedule === undefined) return; // server doesn't share schedules yet
       const s = settingsRef.current;
       if (s.schedulePending || h.schedule === null) {

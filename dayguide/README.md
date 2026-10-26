@@ -93,6 +93,17 @@ household can be given Premium free for life in the SQL Editor:
 4. Add RevenueCat's public iOS key (starts `appl_`) to `eas.json` as
    `EXPO_PUBLIC_REVENUECAT_IOS_KEY`, and a privacy policy link as
    `EXPO_PUBLIC_PRIVACY_URL`, then rebuild.
+5. **Webhook (required: Premium only switches on through this).** In Supabase,
+   **Edge Functions → Deploy a new function → Via Editor**, name it
+   `revenuecat-webhook`, paste
+   [`supabase/functions/revenuecat-webhook/index.ts`](supabase/functions/revenuecat-webhook/index.ts),
+   turn **Verify JWT** off, and deploy. Under **Edge Functions → Secrets** add
+   `RC_WEBHOOK_AUTH` (a long random value, e.g. from `select gen_random_uuid()`
+   twice) and `RC_SECRET_KEY` (RevenueCat → API keys → secret key, `sk_…`).
+   In RevenueCat, **Integrations → Webhooks → Add**: URL
+   `https://<project>.supabase.co/functions/v1/revenuecat-webhook`,
+   Authorization header value = the same `RC_WEBHOOK_AUTH`, all events,
+   both environments (sandbox is used by TestFlight and App Review).
 
 Until then the app runs everything on the free plan, and the upgrade screen
 says subscriptions aren't available yet.
@@ -109,7 +120,7 @@ on its own; the family features are just hidden.
    then [`0002_patient_seen.sql`](supabase/migrations/0002_patient_seen.sql)
    (lets the family member see whether the cared-for phone is connected) and
    [`0003_link_codes.sql`](supabase/migrations/0003_link_codes.sql)
-   (6-digit link codes) and
+   (8-digit link codes) and
    [`0004_shared_schedule.sql`](supabase/migrations/0004_shared_schedule.sql)
    (schedule editing from the family member's phone) and
    [`0005_premium.sql`](supabase/migrations/0005_premium.sql) (free and Premium plans) and
@@ -117,7 +128,11 @@ on its own; the family features are just hidden.
    household from the app, and automatic deletion after 12 months unused) and
    [`0007_faster_lookups.sql`](supabase/migrations/0007_faster_lookups.sql) (speed) and
    [`0008_link_code_limits.sql`](supabase/migrations/0008_link_code_limits.sql)
-   (stops people guessing link codes; needs an app build from after this change).
+   (stops people guessing link codes; needs an app build from after this change) and
+   [`0009_security.sql`](supabase/migrations/0009_security.sql) (long family codes,
+   8-digit link codes, Premium set only by RevenueCat; see [SECURITY.md](SECURITY.md)).
+   Once every phone has the new build and has been opened, run
+   [`0010_drop_legacy_codes.sql`](supabase/migrations/0010_drop_legacy_codes.sql).
 3. Put the project URL and the anon or publishable key (from **Project
    Settings → API Keys**) in `eas.json` for app builds, and in `.env` (copy
    `.env.example`) for running locally. Both are public values that ship
@@ -144,8 +159,6 @@ For real use, build an installable app with EAS:
   the app (needs native widget code per platform).
 - Alerts to more than one family member (today only the phone that set the
   household up gets them).
-- Server-side checking of App Store subscriptions (a RevenueCat webhook);
-  today the family member's app reports the subscription to the server.
 - Quiet alert to a carer's phone when he's using the phone at night.
 - Alert if the phone leaves home.
 - Recorded voice messages in a family member's voice.

@@ -5,7 +5,7 @@ import { Settings, scheduleError, sortEntries } from './schedule';
 import ScheduleEditor from './ScheduleEditor';
 import { DataCard, PrivacyScreen } from './PrivacyData';
 import { HelpLink, HelpScreen } from './HelpSupport';
-import { Household, familyEnabled, getHousehold, hasPremium, redeemLinkCode } from './family';
+import { Household, familyEnabled, hasPremium, redeemLinkCode } from './family';
 import { Button, Screen, doneProps, form } from './ui';
 
 type Props = {
@@ -71,12 +71,13 @@ export default function SettingsScreen({ settings, household, onSave, onClose, o
     if (!/^\d{4}$/.test(draft.pin)) return setError('The PIN must be exactly 4 digits.');
     let next = { ...draft, entries: sortEntries(draft.entries) };
 
-    // Link with the family member's phone: a 6-digit link code, or (older servers) the long household code.
+    // Link with the family member's phone using the 8-digit link code shown there.
     const typed = linkInput.trim();
     if (familyEnabled && typed) {
+      if (!/^\d{8}$/.test(typed)) return setError('The link code is 8 digits.');
       setSaving(true);
       try {
-        const h = /^\d{6}$/.test(typed) ? await redeemLinkCode(typed) : await getHousehold(typed);
+        const h = await redeemLinkCode(typed);
         next = {
           ...next,
           householdCode: h.code,
@@ -121,18 +122,18 @@ export default function SettingsScreen({ settings, household, onSave, onClose, o
             <Text style={styles.warn}>Not linked yet.</Text>
           )}
           <Text style={styles.label}>
-            {linked ? 'To link again, enter' : 'Enter'} the 6-digit link code shown on {carer}'s phone
+            {linked ? 'To link again, enter' : 'Enter'} the 8-digit link code shown on {carer}'s phone
           </Text>
           <TextInput
             style={[styles.input, styles.code]}
             value={linkInput}
             onChangeText={(t) => {
               setError('');
-              setLinkInput(t.replace(/[^0-9a-z]/gi, '').toUpperCase().slice(0, 10));
+              setLinkInput(t.replace(/\D/g, '').slice(0, 8));
             }}
             keyboardType="number-pad"
-            maxLength={10}
-            placeholder="123 456"
+            maxLength={8}
+            placeholder="12345678"
             {...doneProps}
           />
           <Text style={styles.hint}>Then tap Save. This is not the settings PIN.</Text>

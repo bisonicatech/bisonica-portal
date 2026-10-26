@@ -38,7 +38,7 @@ $clocka_email = clocka_mod( 'clocka_email' );
 	<div class="faq" style="margin-top:12px">
 		<details>
 			<summary><?php esc_html_e( 'How do I link the two phones?', 'clocka' ); ?></summary>
-			<p><?php esc_html_e( 'On the family member\'s phone, tap "Show a link code". On the other phone, hold the clock time for 3 seconds, enter the settings PIN, type the 6-digit code and tap Save. Codes last 15 minutes; you can always get a new one.', 'clocka' ); ?></p>
+			<p><?php esc_html_e( 'On the family member\'s phone, tap "Show a link code". On the other phone, hold the clock time for 3 seconds, enter the settings PIN, type the 8-digit code and tap Save. Codes last 15 minutes; you can always get a new one.', 'clocka' ); ?></p>
 		</details>
 		<details>
 			<summary><?php esc_html_e( 'How does Out mode work?', 'clocka' ); ?></summary>
