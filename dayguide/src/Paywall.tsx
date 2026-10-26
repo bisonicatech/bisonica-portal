@@ -29,7 +29,8 @@ export default function Paywall({ code, householdId, patient, onClose, onPremium
   const [waiting, setWaiting] = useState(false);
 
   useEffect(() => {
-    if (!purchasesEnabled || !householdId) return;
+    if (!purchasesEnabled) return;
+    if (!householdId) return setError("Couldn't load prices. The server needs updating (0009_security.sql).");
     setupPurchases(householdId)
       .then(getPlans)
       .then(setPlans)
