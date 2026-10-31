@@ -59,10 +59,12 @@ async function savePremium(householdId: string, until: string | null) {
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
 
-  const expected = Deno.env.get('RC_WEBHOOK_AUTH') ?? '';
-  const rcKey = Deno.env.get('RC_SECRET_KEY') ?? '';
+  // Spaces, line breaks or a "Bearer " prefix picked up when copying don't matter.
+  const clean = (v: string | null | undefined) => (v ?? '').trim().replace(/^Bearer\s+/i, '').trim();
+  const expected = clean(Deno.env.get('RC_WEBHOOK_AUTH'));
+  const rcKey = clean(Deno.env.get('RC_SECRET_KEY'));
   if (expected.length < 20 || !rcKey) return new Response('Webhook not configured', { status: 500 });
-  if (!sameSecret(req.headers.get('Authorization') ?? '', expected)) return new Response('Unauthorized', { status: 401 });
+  if (!sameSecret(clean(req.headers.get('Authorization')), expected)) return new Response('Unauthorized', { status: 401 });
 
   let event: Record<string, unknown>;
   try {
