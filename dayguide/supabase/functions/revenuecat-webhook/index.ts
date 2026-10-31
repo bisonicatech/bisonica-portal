@@ -39,7 +39,10 @@ async function premiumUntil(appUserId: string, rcKey: string): Promise<string | 
 
 async function savePremium(householdId: string, until: string | null) {
   const url = Deno.env.get('SUPABASE_URL')!;
-  const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  // Supabase provides its server key automatically. If it ever doesn't, add your
+  // sb_secret_ key yourself as the secret CLOCKA_SERVICE_KEY.
+  const key = Deno.env.get('CLOCKA_SERVICE_KEY') || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+  if (!key) throw new Error('No Supabase server key: add the CLOCKA_SERVICE_KEY secret');
   const res = await fetch(`${url}/rest/v1/rpc/dg_rc_set_premium`, {
     method: 'POST',
     headers: {

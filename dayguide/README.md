@@ -99,7 +99,7 @@ household can be given Premium free for life in the SQL Editor:
    [`supabase/functions/revenuecat-webhook/index.ts`](supabase/functions/revenuecat-webhook/index.ts),
    turn **Verify JWT** off, and deploy. Under **Edge Functions → Secrets** add
    `RC_WEBHOOK_AUTH` (a long random value, e.g. from `select gen_random_uuid()`
-   twice) and `RC_SECRET_KEY` (RevenueCat → API keys → secret key, `sk_…`).
+   twice) and `RC_SECRET_KEY` (RevenueCat → API keys → secret key, `sk_…`). If the function's logs say there's no Supabase server key, also add `CLOCKA_SERVICE_KEY` = your Supabase `sb_secret_…` key (Project Settings → API Keys → Secret keys).
    In RevenueCat, **Integrations → Webhooks → Add**: URL
    `https://<project>.supabase.co/functions/v1/revenuecat-webhook`,
    Authorization header value = the same `RC_WEBHOOK_AUTH`, all events,
