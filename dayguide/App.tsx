@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, Platform } from 'react-native';
+import { useAndroidBack } from './src/ui';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
@@ -147,6 +148,11 @@ export default function App() {
 
   // Going back to "who is this phone for?" also re-runs first-run setup.
   const chooseRole = (role: Role | undefined) => save({ ...settings, role, ...(role ? {} : { setupDone: false }) });
+
+  // On the cared-for person's clock, Android's back button does nothing, so Clocka isn't closed by accident.
+  const onClock = loaded && settings.role === 'patient' && !!settings.setupDone && !showSettings;
+  const ignoreBack = useCallback(() => {}, []);
+  useAndroidBack(onClock ? ignoreBack : null);
 
   if (!loaded) return null;
 

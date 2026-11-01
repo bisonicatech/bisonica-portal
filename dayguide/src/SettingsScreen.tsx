@@ -6,7 +6,7 @@ import ScheduleEditor from './ScheduleEditor';
 import { DataCard, PrivacyScreen } from './PrivacyData';
 import { HelpLink, HelpScreen } from './HelpSupport';
 import { Household, familyEnabled, hasPremium, redeemLinkCode } from './family';
-import { Button, Screen, doneProps, form } from './ui';
+import { Button, Screen, doneProps, form, useAndroidBack } from './ui';
 
 type Props = {
   settings: Settings;
@@ -28,6 +28,11 @@ export default function SettingsScreen({ settings, household, onSave, onClose, o
   const [linkInput, setLinkInput] = useState('');
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+
+  // Android back button: close the open page, or leave settings without saving.
+  useAndroidBack(
+    showPrivacy ? () => setShowPrivacy(false) : showHelp ? () => setShowHelp(false) : onClose,
+  );
 
   if (showPrivacy) return <PrivacyScreen onClose={() => setShowPrivacy(false)} />;
   if (showHelp) return <HelpScreen onClose={() => setShowHelp(false)} />;

@@ -23,7 +23,7 @@ import {
   setSchedule,
   startOut,
 } from './family';
-import { Button, Screen, doneProps, form } from './ui';
+import { Button, Screen, doneProps, form, useAndroidBack } from './ui';
 
 type Props = {
   settings: Settings;
@@ -117,6 +117,19 @@ export default function FamilyScreen({ settings, onSave, onChangeRole, onReset }
       setBusy(false);
     }
   };
+
+  // Android back button closes the open page (nothing to do on the main family screen).
+  useAndroidBack(
+    showPrivacy
+      ? () => setShowPrivacy(false)
+      : showHelp
+        ? () => setShowHelp(false)
+        : showPaywall
+          ? () => setShowPaywall(false)
+          : editingSchedule
+            ? () => setEditingSchedule(false)
+            : null,
+  );
 
   if (!familyEnabled) {
     return (

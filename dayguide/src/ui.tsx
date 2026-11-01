@@ -1,5 +1,5 @@
-import { ReactNode } from 'react';
-import { InputAccessoryView, Keyboard, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ReactNode, useEffect } from 'react';
+import { BackHandler, InputAccessoryView, Keyboard, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const DONE_ID = 'keyboard-done';
@@ -17,6 +17,21 @@ export const doneProps = {
  * Page wrapper for the family-facing screens: starts just below the notch,
  * scrolls, and keeps the focused field above the keyboard.
  */
+/**
+ * Android's back button: run onBack instead of leaving the app.
+ * Pass null when there's nothing to go back to. Screens shown later take priority.
+ */
+export function useAndroidBack(onBack: (() => void) | null) {
+  useEffect(() => {
+    if (!onBack) return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      onBack();
+      return true;
+    });
+    return () => sub.remove();
+  }, [onBack]);
+}
+
 export function Screen({ children, center }: { children: ReactNode; center?: boolean }) {
   const insets = useSafeAreaInsets();
   return (
