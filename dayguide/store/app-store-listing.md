@@ -31,7 +31,7 @@ counts below were checked.
 
 > Clocka is a gentle day clock for someone living with dementia, and a companion app for the family who support them.
 >
-> Clocka was made by a family, for families: a simple, friendly way to answer one everyday question, gently and at a glance: what should I be doing now?
+> Dementia can make the simplest questions feel uncertain: is it morning or night? Should I be getting up? People living with dementia, and the families who care for them, need support around the clock. Clocka was made by a family, for families, to gently answer one question, day and night: what should I be doing now?
 >
 > FOR THE PERSON YOU CARE FOR
 > • A big, clear clock with the day, the date and whether it's morning, afternoon, evening or night

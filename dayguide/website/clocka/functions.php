@@ -63,7 +63,7 @@ function clocka_defaults() {
 		'clocka_trial'        => '1 month',
 		'clocka_email'        => 'info@clocka.co.uk',
 		'clocka_privacy_url'  => '', // empty = the theme's own /privacy/ page
-		'clocka_story'        => "Clocka was made by a family, for families. When someone we love began to find it harder to keep track of the time of day, we looked for something simple that would gently answer one everyday question: what should I be doing now? We couldn't find it, so we made it: a calm, friendly clock that helps the whole family share the day.",
+		'clocka_story'        => "Dementia can make the simplest questions feel uncertain: is it morning or night? Have I had lunch? Should I be getting up? For people living with dementia, and for the families who care for them, support is needed around the clock, not only when someone is in the room. Clocka was made by a family, for families: a calm, friendly clock that gently answers what to do now, day and night, and lets loved ones help from wherever they are.",
 		'clocka_story_name'   => 'Jason Nicholls, founder of Clocka',
 	);
 }
