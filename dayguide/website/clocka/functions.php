@@ -63,7 +63,7 @@ function clocka_defaults() {
 		'clocka_trial'        => '1 month',
 		'clocka_email'        => 'info@clocka.co.uk',
 		'clocka_privacy_url'  => '', // empty = the theme's own /privacy/ page
-		'clocka_story'        => "Clocka started at 3 o'clock in the morning. My dad lives with dementia, and he would wake in the middle of the night, get dressed and start his day, while his wife was up with him, worn out. We wanted something simple that answered the question he kept asking: what should I be doing now?",
+		'clocka_story'        => "Clocka was made by a family, for families. When someone we love began to find it harder to keep track of the time of day, we looked for something simple that would gently answer one everyday question: what should I be doing now? We couldn't find it, so we made it: a calm, friendly clock that helps the whole family share the day.",
 		'clocka_story_name'   => 'Jason Nicholls, founder of Clocka',
 	);
 }
