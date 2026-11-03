@@ -1,0 +1,276 @@
+<title>Clocka Tester Briefing</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Lexend:wght@500;700&display=swap">
+<style>
+  /* Layout: one readable column, a "two phones" setup diagram, then a numbered test run (it is a real sequence). */
+  :root {
+    --bg: #f7f8fb;
+    --paper: #ffffff;
+    --ink: #1a2133;
+    --muted: #586178;
+    --line: #dde2ec;
+    --navy: #1f3b73;
+    --sun: #ffd447;
+    --sun-soft: #fff4cc;
+    --ios: #e7eefc;
+    --ios-ink: #24418a;
+    --droid: #e3f4e8;
+    --droid-ink: #1f6b38;
+    --warn: #fff1e0;
+    --warn-ink: #8a4b00;
+    --display: 'Lexend', 'Avenir Next', 'Segoe UI', sans-serif;
+    --body: 'Atkinson Hyperlegible', 'Verdana', 'Segoe UI', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #10141f; --paper: #171d2b; --ink: #e8ecf5; --muted: #a4adc2; --line: #2c3447;
+      --navy: #9db8ff; --sun: #ffd447; --sun-soft: #3a3214; --ios: #1d2a4a; --ios-ink: #b4c8ff;
+      --droid: #17331f; --droid-ink: #9fe0b2; --warn: #3a2a14; --warn-ink: #ffcf8f; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #10141f; --paper: #171d2b; --ink: #e8ecf5; --muted: #a4adc2; --line: #2c3447;
+    --navy: #9db8ff; --sun: #ffd447; --sun-soft: #3a3214; --ios: #1d2a4a; --ios-ink: #b4c8ff;
+    --droid: #17331f; --droid-ink: #9fe0b2; --warn: #3a2a14; --warn-ink: #ffcf8f; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink); font: 17px/1.55 var(--body);
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 28px 56px;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; display: grid; gap: 28px; }
+  h1, h2, h3 { font-family: var(--display); color: var(--navy); line-height: 1.2; text-wrap: balance; margin: 0; }
+  h1 { font-size: clamp(30px, 6vw, 42px); }
+  h2 { font-size: 24px; }
+  h3 { font-size: 18px; }
+  p, ul, ol { margin: 0; }
+  ul, ol { padding-left: 1.3em; display: grid; gap: 6px; }
+  section { display: grid; gap: 12px; }
+  .eyebrow { font: 700 13px/1 var(--display); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .lead { font-size: 19px; color: var(--muted); }
+  .clock-face {
+    display: inline-grid; place-items: center; width: 64px; height: 64px; border-radius: 50%;
+    background: var(--sun); color: #1f3b73; font: 700 15px/1 var(--display); box-shadow: inset 0 0 0 4px #1f3b73;
+  }
+  header { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+  header > div { min-width: 0; flex: 1; display: grid; gap: 6px; }
+  .facts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .fact { background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-size: 15px; }
+  .fact b { color: var(--navy); }
+  .box { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; display: grid; gap: 10px; min-width: 0; }
+  .note { background: var(--sun-soft); border-color: transparent; }
+  .warn { background: var(--warn); border-color: transparent; color: var(--ink); }
+  .warn h3 { color: var(--warn-ink); }
+  .ui { font-weight: 700; color: var(--navy); white-space: nowrap; }
+  .code { font: 700 18px/1 var(--display); letter-spacing: .12em; color: var(--navy); background: var(--sun-soft); padding: 2px 8px; border-radius: 6px; white-space: nowrap; }
+  .tag { display: inline-block; font: 700 12px/1 var(--display); letter-spacing: .06em; text-transform: uppercase; padding: 5px 8px; border-radius: 6px; vertical-align: 2px; white-space: nowrap; }
+  .tag.ios { background: var(--ios); color: var(--ios-ink); }
+  .tag.droid { background: var(--droid); color: var(--droid-ink); }
+  .tag.both { background: var(--line); color: var(--ink); }
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+  .phone { border-radius: 22px; border: 3px solid var(--ink); padding: 18px; display: grid; gap: 8px; background: var(--paper); min-width: 0; }
+  .phone .eyebrow { color: var(--navy); }
+  .steps { list-style: none; padding: 0; counter-reset: s; display: grid; gap: 12px; }
+  .steps > li { counter-increment: s; display: grid; grid-template-columns: 40px 1fr; gap: 12px; align-items: start; }
+  .steps > li::before {
+    content: counter(s); display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%;
+    background: var(--navy); color: var(--paper); font: 700 15px/1 var(--display);
+  }
+  .steps > li > div { min-width: 0; display: grid; gap: 4px; }
+  .steps .check { color: var(--muted); font-size: 15px; }
+  .install { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+  .install .box { border-top: 6px solid var(--navy); }
+  .install .droid-box { border-top-color: var(--droid-ink); }
+  hr { border: 0; border-top: 1px solid var(--line); margin: 4px 0; }
+  .small { font-size: 15px; color: var(--muted); }
+  a { color: var(--navy); }
+  :focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+  @media print {
+    body { padding-block: 0; }
+    .box, .phone, .steps > li { break-inside: avoid; }
+    .eyebrow, h2, h3 { break-after: avoid; }
+    section > .eyebrow:first-child { break-before: auto; }
+    #install-section { break-before: page; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <span class="clock-face" aria-hidden="true">10:15</span>
+    <div>
+      <span class="eyebrow">Clocka beta · tester briefing</span>
+      <h1>Thanks for testing Clocka</h1>
+      <p class="lead">Clocka is a gentle day clock for someone living with dementia. It shows the time, whether it's morning or night, and one simple thing to do now. Their family can help from their own phones.</p>
+    </div>
+  </header>
+
+  <div class="facts">
+    <span class="fact"><b>Time:</b> about 30 minutes, plus one check-in later</span>
+    <span class="fact"><b>You need:</b> 2 phones (yours and a partner's)</span>
+    <span class="fact"><b>Cost:</b> free, including Premium</span>
+  </div>
+
+  <div class="box note">
+    <h3>Before you start</h3>
+    <ul>
+      <li><b>There are no accounts or passwords.</b> You set Clocka up once on each phone and link them with a short code.</li>
+      <li><b>Use made-up names</b>, such as "Grandad", and don't enter anyone's real medical details. This is test data.</li>
+      <li><b>You'll need a partner and two phones</b>: one becomes <i>the clock</i> for the person being cared for, the other <i>the family phone</i>. Team up with someone at home or a friend. iPhone and Android can be mixed. On your own? Message Jason and he'll be your family phone.</li>
+      <li>Something not working is a <b>useful result</b>. Please tell us about it.</li>
+    </ul>
+  </div>
+
+  <section aria-labelledby="install" id="install-section">
+    <span class="eyebrow">Step 1</span>
+    <h2 id="install">Install the test app</h2>
+    <div class="install">
+      <div class="box">
+        <h3><span class="tag ios">iPhone</span> via TestFlight</h3>
+        <ol>
+          <li>Install Apple's free <b>TestFlight</b> app from the App Store.</li>
+          <li>Open the <b>invite link</b> Jason sends you (or the email from TestFlight) on your iPhone.</li>
+          <li>Tap <span class="ui">Accept</span>, then <span class="ui">Install</span>.</li>
+          <li>Open <b>Clocka</b>. When asked, tap <span class="ui">Allow</span> for notifications.</li>
+        </ol>
+        <p class="small">Needs iOS 16 or later. Updates appear in TestFlight; tap Update when you see one.</p>
+      </div>
+      <div class="box droid-box">
+        <h3><span class="tag droid">Android</span> via download link</h3>
+        <ol>
+          <li>Open the <b>download link</b> Jason sends you, on your Android phone.</li>
+          <li>Tap <span class="ui">Install</span>. If Android asks, allow <b>"Install unknown apps"</b> for your browser. This is normal for test apps.</li>
+          <li>Open <b>Clocka</b>. When asked, tap <span class="ui">Allow</span> for notifications.</li>
+          <li>Recommended: <b>Settings → Apps → Clocka → Battery → Unrestricted</b>, so reminders aren't delayed.</li>
+        </ol>
+        <p class="small">Needs Android 10 or later.</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="setup">
+    <span class="eyebrow">Step 2</span>
+    <h2 id="setup">Set up the two phones</h2>
+    <p>Do the family phone first, because it makes the code that links the clock.</p>
+    <div class="two">
+      <div class="phone">
+        <span class="eyebrow">Phone A · the family phone</span>
+        <ol>
+          <li>Tap <span class="ui">A family member or carer</span>.</li>
+          <li>Tap <span class="ui">Set up for the first time</span>.</li>
+          <li>Type a made-up name for the person you care for, your name, and your real phone number (for their Call button).</li>
+          <li>Tap <span class="ui">Continue</span>. You'll see an <b>8-digit link code</b>, like <span class="code">4180 8460</span>.</li>
+        </ol>
+      </div>
+      <div class="phone">
+        <span class="eyebrow">Phone B · the clock</span>
+        <ol>
+          <li>Tap <span class="ui">The person being cared for</span>.</li>
+          <li>Type the same made-up name.</li>
+          <li>Type the <b>8-digit code</b> from Phone A.</li>
+          <li>Choose a 4-digit settings PIN and tap <span class="ui">Start</span>.</li>
+        </ol>
+      </div>
+    </div>
+    <p class="small">The code works once and lasts 15 minutes. If it runs out, tap <span class="ui">Get a new code</span> on Phone A.</p>
+  </section>
+
+  <section aria-labelledby="tests">
+    <span class="eyebrow">Step 3</span>
+    <h2 id="tests">Try these, in order</h2>
+    <p>Make a quick note of anything that's confusing, slow, cut off or broken. A screenshot helps.</p>
+    <ol class="steps">
+      <li><div>
+        <h3>Read the clock <span class="tag both">Both</span></h3>
+        <p>On Phone B: can you read the time, the day and the part of the day (morning, afternoon…) from arm's length? Does the message make sense?</p>
+      </div></li>
+      <li><div>
+        <h3>Check the link <span class="tag both">Both</span></h3>
+        <p>On Phone A: does it say <b>"✓ … phone is connected"</b>, and show what the clock is saying right now?</p>
+      </div></li>
+      <li><div>
+        <h3>Change the message from the family phone <span class="tag both">Both</span></h3>
+        <p>Phone A → <span class="ui">Edit … daily schedule</span>. Change the message for the current time, then <span class="ui">Save</span>.</p>
+        <p class="check">Expected: Phone B shows the new message within about 15 seconds.</p>
+      </div></li>
+      <li><div>
+        <h3>Get a reminder sound <span class="tag both">Both</span></h3>
+        <p>In the schedule, tap <span class="ui">+ Add a time</span>. Set it 3 minutes from now, type a message, leave <b>Reminder sound</b> on, and Save. Lock Phone B and wait.</p>
+        <p class="check">Expected: Phone B makes a sound and shows a notification at that time.</p>
+      </div></li>
+      <li><div>
+        <h3>Try night-time <span class="tag both">Both</span></h3>
+        <p>Add another time 2 minutes from now and set it to <span class="ui">Night (silent)</span>.</p>
+        <p class="check">Expected: Phone B turns dark, says it's night-time, makes no sound, and hides the Call button. Delete these two test times afterwards.</p>
+      </div></li>
+      <li><div>
+        <h3>Go out <span class="tag both">Both</span></h3>
+        <p>Phone A → <b>Going out?</b> Type a "back by" time, choose <b>30 min</b> check-ins, tap <span class="ui">Start Out mode</span>.</p>
+        <p class="check">Expected: Phone B shows where you've gone and when you'll be back.</p>
+      </div></li>
+      <li><div>
+        <h3>Answer a check-in <span class="tag ios">iPhone</span></h3>
+        <p>After about 30 minutes, Phone B asks <b>"Are you okay?"</b> Tap <span class="ui">I'm okay 👍</span>. Phone A should show the time of the last "I'm okay".</p>
+        <p class="check">Extra: next time, ignore it. About 15 minutes later Phone A should get a "hasn't answered" alert. Then tap <span class="ui">I'm home</span> on Phone A.</p>
+      </div></li>
+      <li><div>
+        <h3>Use the Call button <span class="tag both">Both</span></h3>
+        <p>On Phone B, tap <span class="ui">Call …</span>. Phone A's number should ring. Hang up.</p>
+      </div></li>
+      <li><div>
+        <h3>Open the clock's settings <span class="tag both">Both</span></h3>
+        <p>On Phone B, <b>press and hold the time for 3 seconds</b>, then type your PIN. Change something small and <span class="ui">Save</span>.</p>
+      </div></li>
+      <li><div>
+        <h3>Press the back button <span class="tag droid">Android</span></h3>
+        <p>On the clock screen, back should do nothing. In settings or help pages, it should go back one step.</p>
+      </div></li>
+      <li><div>
+        <h3>Try Premium, free <span class="tag ios">iPhone</span></h3>
+        <p>Phone A → <span class="ui">Try Premium free for a month</span>, then choose a plan. <b>You won't be charged</b>, because test purchases are free. Apple may show "[Sandbox]".</p>
+        <p class="check">Expected: Premium switches on within a few seconds on both phones. Try <b>different times on different days</b> and <b>Send a message to their screen</b>.</p>
+      </div></li>
+      <li><div>
+        <h3>Look at Help and Privacy <span class="tag both">Both</span></h3>
+        <p>Open <span class="ui">Help and support</span> and <span class="ui">What Clocka keeps and why</span>. Is anything unclear?</p>
+      </div></li>
+      <li><div>
+        <h3>Finish: delete the test data <span class="tag both">Both</span></h3>
+        <p>When you're done, on Phone A tap <span class="ui">Delete all of … Clocka data…</span> and confirm. Both phones should go back to the start screen.</p>
+      </div></li>
+    </ol>
+  </section>
+
+  <div class="box warn">
+    <h3>Known gaps in this test version</h3>
+    <ul>
+      <li><span class="tag droid">Android</span> "Are you okay?" check-ins and missed alerts don't arrive yet, and Premium isn't available on Android yet.</li>
+      <li><span class="tag ios">iPhone</span> The FaceTime video button is iPhone only.</li>
+      <li>No need to report these, unless something else goes wrong around them.</li>
+    </ul>
+  </div>
+
+  <section aria-labelledby="feedback">
+    <span class="eyebrow">Step 4</span>
+    <h2 id="feedback">Send your feedback</h2>
+    <p>Fill in the short <b>feedback form</b>. The link is in Jason's message, and it takes about 5 minutes. Please send it within a week of installing.</p>
+    <p>Screenshots or screen recordings are really helpful. Email them to <b>info@clocka.co.uk</b> with your name and phone model.</p>
+  </section>
+
+  <hr>
+
+  <section aria-labelledby="help">
+    <h2 id="help">Stuck?</h2>
+    <ul>
+      <li><b>The code doesn't work:</b> codes last 15 minutes and work once. Get a new one on Phone A. After 10 wrong tries, wait 15 minutes.</li>
+      <li><b>No sound:</b> check notifications are allowed for Clocka, the volume is up and the phone isn't on silent.</li>
+      <li><b>Start again:</b> in settings, tap <span class="ui">Change what this phone is for…</span>, or delete and reinstall the app.</li>
+      <li><b>Anything else:</b> message Jason, or email info@clocka.co.uk.</li>
+    </ul>
+    <p class="small">Thank you. Every bit of feedback helps families living with dementia.</p>
+  </section>
+
+</div>
