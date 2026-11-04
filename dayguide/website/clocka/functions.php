@@ -52,6 +52,26 @@ function clocka_meta_description() {
 }
 add_action( 'wp_head', 'clocka_meta_description', 1 );
 
+/** Keep just the verification code, whether the whole <meta> tag or only the code was pasted. */
+function clocka_sanitize_verify( $value ) {
+	if ( preg_match( '/content=["\']([^"\']+)["\']/', (string) $value, $m ) ) {
+		$value = $m[1];
+	}
+	return preg_replace( '/[^A-Za-z0-9_\-]/', '', (string) $value );
+}
+
+/** Google Search Console "HTML tag" verification, so Google Play can confirm you own the website. */
+function clocka_google_verification() {
+	$code = trim( (string) clocka_mod( 'clocka_google_verify' ) );
+	if ( preg_match( '/content=["\']([^"\']+)["\']/', $code, $m ) ) {
+		$code = $m[1];
+	}
+	if ( $code ) {
+		echo '<meta name="google-site-verification" content="' . esc_attr( $code ) . '">' . "\n";
+	}
+}
+add_action( 'wp_head', 'clocka_google_verification', 1 );
+
 /** Default settings. */
 function clocka_defaults() {
 	return array(
@@ -65,6 +85,7 @@ function clocka_defaults() {
 		'clocka_privacy_url'  => '', // empty = the theme's own /privacy/ page
 		'clocka_story'        => "Dementia can make the simplest questions feel uncertain: is it morning or night? Have I had lunch? Should I be getting up? For people living with dementia, and for the families who care for them, support is needed around the clock, not only when someone is in the room. Clocka was made by a family, for families: a calm, friendly clock that gently answers what to do now, day and night, and lets loved ones help from wherever they are.",
 		'clocka_story_name'   => 'Jason Nicholls, founder of Clocka',
+		'clocka_google_verify' => '',
 	);
 }
 
@@ -101,10 +122,11 @@ function clocka_customize_register( $wp_customize ) {
 		'clocka_privacy_url'  => array( __( 'Privacy policy link (leave empty to use the built-in /privacy/ page)', 'clocka' ), 'url' ),
 		'clocka_story'        => array( __( 'Founder\'s story', 'clocka' ), 'textarea' ),
 		'clocka_story_name'   => array( __( 'Story signed by', 'clocka' ), 'text' ),
+		'clocka_google_verify' => array( __( 'Google verification (Google Search Console → HTML tag: paste the whole <meta …> tag or just the code)', 'clocka' ), 'verify' ),
 	);
 	$defaults = clocka_defaults();
 	foreach ( $fields as $id => $field ) {
-		$sanitize = 'url' === $field[1] ? 'esc_url_raw' : ( 'email' === $field[1] ? 'sanitize_email' : ( 'textarea' === $field[1] ? 'sanitize_textarea_field' : 'sanitize_text_field' ) );
+		$sanitize = 'url' === $field[1] ? 'esc_url_raw' : ( 'email' === $field[1] ? 'sanitize_email' : ( 'textarea' === $field[1] ? 'sanitize_textarea_field' : ( 'verify' === $field[1] ? 'clocka_sanitize_verify' : 'sanitize_text_field' ) ) );
 		$wp_customize->add_setting(
 			$id,
 			array(
@@ -117,7 +139,7 @@ function clocka_customize_register( $wp_customize ) {
 			array(
 				'label'   => $field[0],
 				'section' => 'clocka',
-				'type'    => $field[1],
+				'type'    => 'verify' === $field[1] ? 'text' : $field[1],
 			)
 		);
 	}
