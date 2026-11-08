@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 import type { Entry } from './schedule';
 
 // Links the cared-for person's phone with a family member's phone through
@@ -177,7 +178,9 @@ export async function registerForPush(code: string, role: 'patient' | 'carer') {
   }
   const perm = await Notifications.requestPermissionsAsync();
   if (!perm.granted) return;
-  const token = await Notifications.getExpoPushTokenAsync();
+  // The Expo project ID tells Expo's push service which app (and which Firebase/Apple keys) to use.
+  const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
+  const token = await Notifications.getExpoPushTokenAsync(projectId ? { projectId } : undefined);
   await rpc('dg_set_push_token', { p_code: code, p_role: role, p_token: token.data });
 }
 

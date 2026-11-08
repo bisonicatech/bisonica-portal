@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "163850471506",
+    "project_id": "clocka2026",
+    "storage_bucket": "clocka2026.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:163850471506:android:1e416b0c0096a28c82f78b",
+        "android_client_info": {
+          "package_name": "com.bisonica.dayguide"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATUKWFV35fb9XoiU9FS35ijoj-qrh-df0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
